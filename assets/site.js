@@ -34,13 +34,8 @@
       slack = Math.max(1, heroOuter.offsetHeight - heroStage.offsetHeight);
     };
 
-    // Each layer declares its own leg of the journey in data-z:
-    // startScale, endScale, enters at p, leaves at p, fade-in length, fade-out starts at p
-    var layers = [].map.call(heroStage.querySelectorAll('.hero-layer'), function (el) {
-      var z = (el.getAttribute('data-z') || '').split(',').map(Number);
-      return { el: el, s0: z[0], s1: z[1], from: z[2], to: z[3], fadeIn: z[4], fadeOut: z[5] };
-    });
-
+    var video = heroStage.querySelector('.hero-video');
+    var videoReady = false;
     var clamp01 = function (v) { return v < 0 ? 0 : (v > 1 ? 1 : v); };
 
     var frame = function () {
@@ -51,19 +46,12 @@
       lastP = p;
 
       heroStage.style.setProperty('--p', p.toFixed(4));
-      heroStage.classList.toggle('is-live', p > 0 && p < 1);
 
-      for (var i = 0; i < layers.length; i++) {
-        var L = layers[i];
-        var t = clamp01((p - L.from) / (L.to - L.from));
-        // Geometric interpolation, not linear: a constant ratio per unit of scroll is
-        // what reads as a steady push. Linear scaling visibly decelerates.
-        var s = L.s0 * Math.pow(L.s1 / L.s0, t);
-        var o = 1;
-        if (L.fadeIn > 0) o = clamp01((p - L.from) / L.fadeIn);
-        if (L.fadeOut > 0) o *= 1 - clamp01((p - L.fadeOut) / (L.to - L.fadeOut));
-        L.el.style.setProperty('--s', s.toFixed(4));
-        L.el.style.setProperty('--o', o.toFixed(3));
+      // Scrub. Stop a hair short of the end: seeking exactly to duration can park
+      // some browsers on a blank frame.
+      if (videoReady && video.duration) {
+        var t = p * (video.duration - 0.05);
+        if (Math.abs(video.currentTime - t) > 0.01) video.currentTime = t;
       }
     };
 
@@ -72,10 +60,31 @@
     };
     var onResize = function () { measure(); request(); };
 
+    // The clip is only fetched on screens that will actually scrub it, so phones
+    // and reduced-motion visitors never pay for a video they will not see.
+    var loadVideo = function () {
+      if (!video || video.getAttribute('src')) return;
+      var src = video.getAttribute(window.innerWidth > 1280 ? 'data-src' : 'data-src-small');
+      if (!src) return;
+      video.addEventListener('loadedmetadata', function () {
+        videoReady = true;
+        heroStage.classList.add('video-on');
+        lastP = -1;
+        request();
+      }, { once: true });
+      video.addEventListener('error', function () {
+        videoReady = false;
+        heroStage.classList.remove('video-on');
+      }, { once: true });
+      video.setAttribute('src', src);
+      video.load();
+    };
+
     var start = function () {
       if (running) return;
       running = true;
       measure();
+      loadVideo();
       // Nothing is computed while the hero is off screen.
       io = new IntersectionObserver(function (entries) {
         onScreen = entries[0].isIntersecting;
@@ -93,11 +102,7 @@
       window.removeEventListener('scroll', request);
       window.removeEventListener('resize', onResize);
       heroStage.style.removeProperty('--p');
-      heroStage.classList.remove('is-live');
-      for (var i = 0; i < layers.length; i++) {
-        layers[i].el.style.removeProperty('--s');
-        layers[i].el.style.removeProperty('--o');
-      }
+      heroStage.classList.remove('video-on');
       lastP = -1;
     };
 

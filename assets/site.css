@@ -292,28 +292,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   display: flex; align-items: flex-end;
 }
 
-/* The journey: three real photographs of 2423 Prytania stacked in depth. Each one
-   scales from its own doorway (transform-origin) and cross-dissolves into the next
-   while both are still moving, so the eye reads one continuous push through the
-   front door, through the hall arch, and into the library. site.js writes --s and
-   --o per layer; nothing here animates on its own. */
-.hero-zoom { position: absolute; inset: 0; z-index: 0; }
-.hero-layer {
-  position: absolute; inset: -10%;
-  transform: scale(var(--s, 1));
-  transform-origin: var(--ox, 50%) var(--oy, 50%);
-  opacity: var(--o, 0);
-  backface-visibility: hidden;
+/* The journey is a 10 second clip scrubbed by scroll: the camera comes up the walk,
+   the front door opens, and it glides into the entrance hall. site.js sets the video
+   time from scroll progress. The still is what everyone else gets, so the hero is
+   never blank: no JS, reduced motion, phones, or a browser that will not play it. */
+.hero-zoom { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.hero-video, .hero-still {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 55%;
 }
-/* Without JS, or under reduced motion, only the establishing shot is ever shown. */
-.hero-layer:first-child { opacity: var(--o, 1); }
-.hero-layer img { width: 100%; height: 100%; object-fit: cover; }
-/* Scrim deepens as the image fills, so the type keeps its contrast throughout. */
+.hero-video { display: none; }
+.hero-stage.video-on .hero-video { display: block; }
+.hero-stage.video-on .hero-still { opacity: 0; }
+/* A touch of push on the still so the fallback is not completely inert. */
+.hero-still { transform: scale(calc(1 + var(--p) * 0.06)); transition: opacity 0.6s var(--ease); }
+/* The scrim exists to keep the headline legible, so it leaves with the headline.
+   Holding it at full strength over the journey just fogs the photography. */
 .hero-stage::after {
-  content: ""; position: absolute; inset: 0; z-index: 1;
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(to bottom,
     rgba(18,42,30,0.55) 0%, rgba(18,42,30,0.14) 32%, rgba(18,42,30,0.80) 100%);
-  opacity: calc(1 + var(--p) * 0.22);
+  opacity: calc(1 - var(--p) * 2.8);
 }
 /* Copy clears out early, in the first third, so the journey has the screen to itself. */
 .hero-copy {
@@ -330,14 +329,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   color: rgba(250,248,243,0.9); }
 .hero-ctas { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 2.2rem; }
 
-/* Only promote to compositor layers while the sequence is actually mid-flight. */
-.hero-stage.is-live .hero-layer { will-change: transform, opacity; }
-
 @media (prefers-reduced-motion: reduce) {
   .hero-outer { height: auto; }
   .hero-stage { position: static; height: 100vh; height: 100svh; }
-  .hero-layer { transform: none; inset: 0; }
-  .hero-layer:not(:first-child) { display: none; }
+  .hero-video { display: none !important; }
+  .hero-still { transform: none; opacity: 1 !important; }
   .hero-copy { transform: none; opacity: 1; }
 }
 
@@ -447,8 +443,8 @@ a.feature-img:hover img { transform: scale(1.035); }
      page starts, and the effect is barely legible on a small screen anyway. */
   .hero-outer { height: auto; }
   .hero-stage { position: static; height: 100vh; height: 100svh; }
-  .hero-layer { transform: none; inset: 0; }
-  .hero-layer:not(:first-child) { display: none; }
+  .hero-video { display: none !important; }
+  .hero-still { transform: none; opacity: 1 !important; }
   .hero-copy { transform: none; opacity: 1; }
 
   .card-grid { grid-template-columns: 1fr 1fr; gap: 2.2rem 1.2rem; }
