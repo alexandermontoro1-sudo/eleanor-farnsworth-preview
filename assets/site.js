@@ -35,7 +35,42 @@
     };
 
     var video = heroStage.querySelector('.hero-video');
-    var videoReady = false, played = false;
+    var videoReady = false, played = false, ticking = false;
+
+    var smooth = function (t) { return t * t * (3 - 2 * t); };
+    var ramp = function (x, a, b) {
+      var t = (x - a) / (b - a);
+      return smooth(t < 0 ? 0 : (t > 1 ? 1 : t));
+    };
+
+    /* The headline opens the film, steps aside while the camera travels, and
+       returns over the staircase at the end with the buttons. One curve does all
+       three: fade out early, stay away through the middle, come back at the end. */
+    var publish = function () {
+      if (!video || !video.duration) return;
+      var v = video.currentTime / video.duration;
+      var copy = Math.max(1 - ramp(v, 0.04, 0.30), ramp(v, 0.78, 0.97));
+      heroStage.style.setProperty('--v', v.toFixed(4));
+      heroStage.style.setProperty('--copy-o', copy.toFixed(3));
+      // invisible buttons must not stay clickable
+      heroStage.classList.toggle('copy-hidden', copy < 0.04);
+    };
+
+    /* timeupdate only fires a few times a second, which is too coarse for a fade,
+       so the fade is driven per frame while the clip is actually running. */
+    var tick = function () {
+      publish();
+      if (video && !video.paused && !video.ended) {
+        requestAnimationFrame(tick);
+      } else {
+        ticking = false;
+      }
+    };
+    var startTicking = function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(tick);
+    };
     var clamp01 = function (v) { return v < 0 ? 0 : (v > 1 ? 1 : v); };
 
     var frame = function () {
@@ -59,7 +94,7 @@
           played = false;
           video.pause();
           video.currentTime = 0;
-          heroStage.style.setProperty('--v', '0');
+          publish();
         }
       }
     };
@@ -81,12 +116,9 @@
         lastP = -1;
         request();
       }, { once: true });
-      // Publish playback progress so the copy can clear out as the journey runs,
-      // not only when the reader scrolls.
-      video.addEventListener('timeupdate', function () {
-        if (!video.duration) return;
-        heroStage.style.setProperty('--v', (video.currentTime / video.duration).toFixed(3));
-      });
+      video.addEventListener('play', startTicking);
+      video.addEventListener('timeupdate', publish);
+      video.addEventListener('ended', publish);
       video.addEventListener('error', function () {
         videoReady = false;
         heroStage.classList.remove('video-on');
@@ -118,7 +150,8 @@
       window.removeEventListener('resize', onResize);
       heroStage.style.removeProperty('--p');
       heroStage.style.removeProperty('--v');
-      heroStage.classList.remove('video-on');
+      heroStage.style.removeProperty('--copy-o');
+      heroStage.classList.remove('video-on', 'copy-hidden');
       if (video) video.pause();
       played = false;
       lastP = -1;
