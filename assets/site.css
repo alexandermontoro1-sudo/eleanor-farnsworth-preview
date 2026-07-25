@@ -284,21 +284,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    --p stays 0 when JS is off or motion is reduced, which leaves a clean still hero. */
 /* svh, never dvh: dvh relayouts every time a mobile address bar shows or hides,
    which changes the pin distance mid-scroll and makes the progress snap. */
-.hero-outer { position: relative; height: 175vh; height: 175svh; background: var(--green-deep); }
+.hero-outer { position: relative; height: 280vh; height: 280svh; background: var(--green-deep); }
 .hero-stage {
   --p: 0;
   position: sticky; top: 0; overflow: hidden;
   height: 100vh; height: 100svh;
   display: flex; align-items: flex-end;
 }
-/* Zoom capped at 1.12. Past roughly 1.15 the resample turns visibly soft and the
-   movement starts to read as uncomfortable on a full-bleed image. */
-.hero-media {
-  position: absolute; inset: -7%;
-  transform: scale(calc(1 + var(--p) * 0.12));
-  transform-origin: 50% 58%;
+
+/* The journey: three real photographs of 2423 Prytania stacked in depth. Each one
+   scales from its own doorway (transform-origin) and cross-dissolves into the next
+   while both are still moving, so the eye reads one continuous push through the
+   front door, through the hall arch, and into the library. site.js writes --s and
+   --o per layer; nothing here animates on its own. */
+.hero-zoom { position: absolute; inset: 0; z-index: 0; }
+.hero-layer {
+  position: absolute; inset: -10%;
+  transform: scale(var(--s, 1));
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+  opacity: var(--o, 0);
+  backface-visibility: hidden;
 }
-.hero-media img { width: 100%; height: 100%; object-fit: cover; }
+/* Without JS, or under reduced motion, only the establishing shot is ever shown. */
+.hero-layer:first-child { opacity: var(--o, 1); }
+.hero-layer img { width: 100%; height: 100%; object-fit: cover; }
 /* Scrim deepens as the image fills, so the type keeps its contrast throughout. */
 .hero-stage::after {
   content: ""; position: absolute; inset: 0; z-index: 1;
@@ -306,11 +315,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     rgba(18,42,30,0.55) 0%, rgba(18,42,30,0.14) 32%, rgba(18,42,30,0.80) 100%);
   opacity: calc(1 + var(--p) * 0.22);
 }
+/* Copy clears out early, in the first third, so the journey has the screen to itself. */
 .hero-copy {
   position: relative; z-index: 2; color: #FAF8F3;
   padding-bottom: clamp(3rem, 7vw, 6rem); padding-top: calc(var(--nav-h) + 2rem);
-  transform: translate3d(0, calc(var(--p) * -4rem), 0);
-  opacity: calc(1 - var(--p) * 1.15);
+  transform: translate3d(0, calc(var(--p) * -8rem), 0);
+  opacity: calc(1 - var(--p) * 3.6);
 }
 /* Widths in em, not ch: ch is measured from the font's zero glyph, so it changes
    the moment the webfont swaps in and re-wraps the headline. em follows font-size
@@ -320,13 +330,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   color: rgba(250,248,243,0.9); }
 .hero-ctas { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 2.2rem; }
 
-/* Only promote the layer to its own compositor layer while it is actually moving. */
-.hero-stage.is-live .hero-media { will-change: transform; }
+/* Only promote to compositor layers while the sequence is actually mid-flight. */
+.hero-stage.is-live .hero-layer { will-change: transform, opacity; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-outer { height: auto; }
   .hero-stage { position: static; height: 100vh; height: 100svh; }
-  .hero-media { transform: none; inset: 0; }
+  .hero-layer { transform: none; inset: 0; }
+  .hero-layer:not(:first-child) { display: none; }
   .hero-copy { transform: none; opacity: 1; }
 }
 
@@ -436,7 +447,8 @@ a.feature-img:hover img { transform: scale(1.035); }
      page starts, and the effect is barely legible on a small screen anyway. */
   .hero-outer { height: auto; }
   .hero-stage { position: static; height: 100vh; height: 100svh; }
-  .hero-media { transform: none; inset: 0; }
+  .hero-layer { transform: none; inset: 0; }
+  .hero-layer:not(:first-child) { display: none; }
   .hero-copy { transform: none; opacity: 1; }
 
   .card-grid { grid-template-columns: 1fr 1fr; gap: 2.2rem 1.2rem; }

@@ -34,14 +34,37 @@
       slack = Math.max(1, heroOuter.offsetHeight - heroStage.offsetHeight);
     };
 
+    // Each layer declares its own leg of the journey in data-z:
+    // startScale, endScale, enters at p, leaves at p, fade-in length, fade-out starts at p
+    var layers = [].map.call(heroStage.querySelectorAll('.hero-layer'), function (el) {
+      var z = (el.getAttribute('data-z') || '').split(',').map(Number);
+      return { el: el, s0: z[0], s1: z[1], from: z[2], to: z[3], fadeIn: z[4], fadeOut: z[5] };
+    });
+
+    var clamp01 = function (v) { return v < 0 ? 0 : (v > 1 ? 1 : v); };
+
     var frame = function () {
       queued = false;
-      var p = -heroOuter.getBoundingClientRect().top / slack;   // one read
-      p = p < 0 ? 0 : (p > 1 ? 1 : p);
+      var p = -heroOuter.getBoundingClientRect().top / slack;   // the single layout read
+      p = clamp01(p);
       if (p === lastP) return;
-      heroStage.style.setProperty('--p', p.toFixed(4));         // one write
-      heroStage.classList.toggle('is-live', p > 0 && p < 1);    // will-change only mid-flight
       lastP = p;
+
+      heroStage.style.setProperty('--p', p.toFixed(4));
+      heroStage.classList.toggle('is-live', p > 0 && p < 1);
+
+      for (var i = 0; i < layers.length; i++) {
+        var L = layers[i];
+        var t = clamp01((p - L.from) / (L.to - L.from));
+        // Geometric interpolation, not linear: a constant ratio per unit of scroll is
+        // what reads as a steady push. Linear scaling visibly decelerates.
+        var s = L.s0 * Math.pow(L.s1 / L.s0, t);
+        var o = 1;
+        if (L.fadeIn > 0) o = clamp01((p - L.from) / L.fadeIn);
+        if (L.fadeOut > 0) o *= 1 - clamp01((p - L.fadeOut) / (L.to - L.fadeOut));
+        L.el.style.setProperty('--s', s.toFixed(4));
+        L.el.style.setProperty('--o', o.toFixed(3));
+      }
     };
 
     var request = function () {
@@ -71,6 +94,10 @@
       window.removeEventListener('resize', onResize);
       heroStage.style.removeProperty('--p');
       heroStage.classList.remove('is-live');
+      for (var i = 0; i < layers.length; i++) {
+        layers[i].el.style.removeProperty('--s');
+        layers[i].el.style.removeProperty('--o');
+      }
       lastP = -1;
     };
 
