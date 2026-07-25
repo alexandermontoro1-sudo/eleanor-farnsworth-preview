@@ -35,7 +35,7 @@
     };
 
     var video = heroStage.querySelector('.hero-video');
-    var videoReady = false;
+    var videoReady = false, played = false;
     var clamp01 = function (v) { return v < 0 ? 0 : (v > 1 ? 1 : v); };
 
     var frame = function () {
@@ -47,11 +47,20 @@
 
       heroStage.style.setProperty('--p', p.toFixed(4));
 
-      // Scrub. Stop a hair short of the end: seeking exactly to duration can park
-      // some browsers on a blank frame.
-      if (videoReady && video.duration) {
-        var t = p * (video.duration - 0.05);
-        if (Math.abs(video.currentTime - t) > 0.01) video.currentTime = t;
+      // The clip plays at its own framerate rather than being scrubbed. Seeking
+      // frame by frame always looks stepped; letting it play is simply smooth.
+      if (videoReady) {
+        if (p > 0.01 && !played) {
+          played = true;
+          var attempt = video.play();
+          if (attempt && attempt.catch) attempt.catch(function () { played = false; });
+        } else if (p === 0 && played && video.ended) {
+          // back at the top: rewind so the journey can run again on the next scroll
+          played = false;
+          video.pause();
+          video.currentTime = 0;
+          heroStage.style.setProperty('--v', '0');
+        }
       }
     };
 
@@ -72,6 +81,12 @@
         lastP = -1;
         request();
       }, { once: true });
+      // Publish playback progress so the copy can clear out as the journey runs,
+      // not only when the reader scrolls.
+      video.addEventListener('timeupdate', function () {
+        if (!video.duration) return;
+        heroStage.style.setProperty('--v', (video.currentTime / video.duration).toFixed(3));
+      });
       video.addEventListener('error', function () {
         videoReady = false;
         heroStage.classList.remove('video-on');
@@ -102,7 +117,10 @@
       window.removeEventListener('scroll', request);
       window.removeEventListener('resize', onResize);
       heroStage.style.removeProperty('--p');
+      heroStage.style.removeProperty('--v');
       heroStage.classList.remove('video-on');
+      if (video) video.pause();
+      played = false;
       lastP = -1;
     };
 

@@ -284,9 +284,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    --p stays 0 when JS is off or motion is reduced, which leaves a clean still hero. */
 /* svh, never dvh: dvh relayouts every time a mobile address bar shows or hides,
    which changes the pin distance mid-scroll and makes the progress snap. */
-.hero-outer { position: relative; height: 280vh; height: 280svh; background: var(--green-deep); }
+/* Shorter runway now the clip plays on its own clock rather than being scrubbed.
+   Enough pinned scroll to hold the hero while it runs, not so much that the page
+   feels like it is refusing to move. */
+.hero-outer { position: relative; height: 200vh; height: 200svh; background: var(--green-deep); }
 .hero-stage {
-  --p: 0;
+  --p: 0;  /* scroll progress  */
+  --v: 0;  /* playback progress */
   position: sticky; top: 0; overflow: hidden;
   height: 100vh; height: 100svh;
   display: flex; align-items: flex-end;
@@ -312,14 +316,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(to bottom,
     rgba(18,42,30,0.55) 0%, rgba(18,42,30,0.14) 32%, rgba(18,42,30,0.80) 100%);
-  opacity: calc(1 - var(--p) * 2.8);
+  opacity: calc(1 - max(var(--p), var(--v)) * 2.2);
 }
-/* Copy clears out early, in the first third, so the journey has the screen to itself. */
+/* The copy clears out on whichever happens first, the reader scrolling or the clip
+   playing. Tying it to scroll alone left the headline sitting on top of the interior
+   for anyone who simply watched. --v is playback progress, written by site.js. */
 .hero-copy {
   position: relative; z-index: 2; color: #FAF8F3;
   padding-bottom: clamp(3rem, 7vw, 6rem); padding-top: calc(var(--nav-h) + 2rem);
-  transform: translate3d(0, calc(var(--p) * -8rem), 0);
-  opacity: calc(1 - var(--p) * 3.6);
+  transform: translate3d(0, calc(max(var(--p), var(--v)) * -8rem), 0);
+  opacity: calc(1 - max(var(--p), var(--v)) * 2.8);
 }
 /* Widths in em, not ch: ch is measured from the font's zero glyph, so it changes
    the moment the webfont swaps in and re-wraps the headline. em follows font-size
