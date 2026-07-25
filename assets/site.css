@@ -277,19 +277,60 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .foot-base { border-top: 1px solid rgba(250,248,243,0.18); padding-top: 1.5rem;
   display: flex; justify-content: space-between; gap: 1.4rem; flex-wrap: wrap; font-size: 0.78rem; opacity: 0.7; }
 
-/* ---------------- Page sections ---------------- */
-.home-hero { position: relative; min-height: 100dvh; display: flex; align-items: flex-end;
-  background: var(--green-deep); overflow: hidden; }
-.home-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  animation: heroSettle 3s var(--ease) both; }
-@keyframes heroSettle { from { transform: scale(1.08); } to { transform: none; } }
-.home-hero::after { content: ""; position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(18,42,30,0.52) 0%, rgba(18,42,30,0.12) 30%, rgba(18,42,30,0.78) 100%); }
-.home-hero .wrap { position: relative; z-index: 2; color: #FAF8F3;
-  padding-bottom: clamp(3rem, 7vw, 6rem); padding-top: calc(var(--nav-h) + 2rem); }
-.home-hero h1 { font-size: clamp(2.5rem, 5.6vw, 5rem); max-width: 17ch; }
-.home-hero p { max-width: 48ch; margin-top: 1.5rem; font-size: clamp(1rem, 1.25vw, 1.12rem); color: rgba(250,248,243,0.9); }
+/* ---------------- Hero ----------------
+   A pinned stage that pushes in as you scroll the first screen. Scroll progress
+   arrives as --p (0 to 1) from site.js, and every motion below is derived from it,
+   so the whole effect is one number and all of it is transform/opacity only.
+   --p stays 0 when JS is off or motion is reduced, which leaves a clean still hero. */
+/* svh, never dvh: dvh relayouts every time a mobile address bar shows or hides,
+   which changes the pin distance mid-scroll and makes the progress snap. */
+.hero-outer { position: relative; height: 175vh; height: 175svh; background: var(--green-deep); }
+.hero-stage {
+  --p: 0;
+  position: sticky; top: 0; overflow: hidden;
+  height: 100vh; height: 100svh;
+  display: flex; align-items: flex-end;
+}
+/* Zoom capped at 1.12. Past roughly 1.15 the resample turns visibly soft and the
+   movement starts to read as uncomfortable on a full-bleed image. */
+.hero-media {
+  position: absolute; inset: -7%;
+  transform: scale(calc(1 + var(--p) * 0.12));
+  transform-origin: 50% 58%;
+}
+.hero-media img { width: 100%; height: 100%; object-fit: cover; }
+/* Scrim deepens as the image fills, so the type keeps its contrast throughout. */
+.hero-stage::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(to bottom,
+    rgba(18,42,30,0.55) 0%, rgba(18,42,30,0.14) 32%, rgba(18,42,30,0.80) 100%);
+  opacity: calc(1 + var(--p) * 0.22);
+}
+.hero-copy {
+  position: relative; z-index: 2; color: #FAF8F3;
+  padding-bottom: clamp(3rem, 7vw, 6rem); padding-top: calc(var(--nav-h) + 2rem);
+  transform: translate3d(0, calc(var(--p) * -4rem), 0);
+  opacity: calc(1 - var(--p) * 1.15);
+}
+/* Widths in em, not ch: ch is measured from the font's zero glyph, so it changes
+   the moment the webfont swaps in and re-wraps the headline. em follows font-size
+   only, which is already fixed by the clamp, so the box never moves. */
+.hero-copy h1 { font-size: clamp(2.5rem, 5vw, 4.4rem); max-width: 15em; line-height: 1.04; }
+.hero-copy p { max-width: 33em; margin-top: 1.4rem; font-size: clamp(1rem, 1.25vw, 1.12rem);
+  color: rgba(250,248,243,0.9); }
 .hero-ctas { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 2.2rem; }
+
+/* Only promote the layer to its own compositor layer while it is actually moving. */
+.hero-stage.is-live .hero-media { will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-outer { height: auto; }
+  .hero-stage { position: static; height: 100vh; height: 100svh; }
+  .hero-media { transform: none; inset: 0; }
+  .hero-copy { transform: none; opacity: 1; }
+}
+
+/* ---------------- Page sections ---------------- */
 
 .stat-strip { background: var(--paper-warm); border-bottom: 1px solid var(--hairline); }
 .stat-strip .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1.5rem, 3vw, 3rem);
@@ -391,6 +432,13 @@ a.feature-img:hover img { transform: scale(1.035); }
   .about-grid img { max-width: 420px; }
 }
 @media (max-width: 900px) {
+  /* No pinned scroll zoom on phones: it costs 80vh of dead scrolling before the
+     page starts, and the effect is barely legible on a small screen anyway. */
+  .hero-outer { height: auto; }
+  .hero-stage { position: static; height: 100vh; height: 100svh; }
+  .hero-media { transform: none; inset: 0; }
+  .hero-copy { transform: none; opacity: 1; }
+
   .card-grid { grid-template-columns: 1fr 1fr; gap: 2.2rem 1.2rem; }
   .lcard, .lcard.w3, .lcard.w4 { grid-column: span 1; }
   .lcard.w3 .lcard-img img, .lcard.w4 .lcard-img img { aspect-ratio: 4 / 3; }

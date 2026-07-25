@@ -17,6 +17,75 @@
     Array.prototype.forEach.call(revealEls, function (el) { io.observe(el); });
   }
 
+  /* --- Hero scroll zoom ---
+     Publishes scroll progress as a single custom property, --p (0 to 1), on the
+     sticky stage. All the actual motion lives in CSS. Reads are latched to one
+     rAF per frame so a fast scroll cannot queue up layout reads, and the whole
+     thing is skipped under reduced motion or on small screens, where CSS pins
+     the hero as a plain static image. */
+  var heroOuter = document.querySelector('.hero-outer');
+  var heroStage = document.querySelector('.hero-stage');
+  if (heroOuter && heroStage) {
+    var motionQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var wideQ = window.matchMedia('(min-width: 901px)');
+    var queued = false, onScreen = false, running = false, slack = 1, lastP = -1, io = null;
+
+    var measure = function () {
+      slack = Math.max(1, heroOuter.offsetHeight - heroStage.offsetHeight);
+    };
+
+    var frame = function () {
+      queued = false;
+      var p = -heroOuter.getBoundingClientRect().top / slack;   // one read
+      p = p < 0 ? 0 : (p > 1 ? 1 : p);
+      if (p === lastP) return;
+      heroStage.style.setProperty('--p', p.toFixed(4));         // one write
+      heroStage.classList.toggle('is-live', p > 0 && p < 1);    // will-change only mid-flight
+      lastP = p;
+    };
+
+    var request = function () {
+      if (!queued && onScreen) { queued = true; requestAnimationFrame(frame); }
+    };
+    var onResize = function () { measure(); request(); };
+
+    var start = function () {
+      if (running) return;
+      running = true;
+      measure();
+      // Nothing is computed while the hero is off screen.
+      io = new IntersectionObserver(function (entries) {
+        onScreen = entries[0].isIntersecting;
+        if (onScreen) { measure(); request(); }
+      });
+      io.observe(heroOuter);
+      window.addEventListener('scroll', request, { passive: true });
+      window.addEventListener('resize', onResize, { passive: true });
+    };
+
+    var stop = function () {
+      if (!running) return;
+      running = false;
+      if (io) { io.disconnect(); io = null; }
+      window.removeEventListener('scroll', request);
+      window.removeEventListener('resize', onResize);
+      heroStage.style.removeProperty('--p');
+      heroStage.classList.remove('is-live');
+      lastP = -1;
+    };
+
+    // Re-evaluates live, so rotating a tablet or toggling the OS motion setting
+    // switches between the pinned and the static hero without a reload.
+    var sync = function () {
+      if (wideQ.matches && !motionQ.matches) { start(); } else { stop(); }
+    };
+    if (motionQ.addEventListener) {
+      motionQ.addEventListener('change', sync);
+      wideQ.addEventListener('change', sync);
+    }
+    sync();
+  }
+
   /* --- Nav goes solid past the hero --- */
   if (nav && !nav.classList.contains('always-solid')) {
     var sentinel = document.querySelector('[data-nav-sentinel]');
