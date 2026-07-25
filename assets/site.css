@@ -284,15 +284,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    --p stays 0 when JS is off or motion is reduced, which leaves a clean still hero. */
 /* svh, never dvh: dvh relayouts every time a mobile address bar shows or hides,
    which changes the pin distance mid-scroll and makes the progress snap. */
-/* Shorter runway now the clip plays on its own clock rather than being scrubbed.
-   Enough pinned scroll to hold the hero while it runs, not so much that the page
-   feels like it is refusing to move. */
-.hero-outer { position: relative; height: 200vh; height: 200svh; background: var(--green-deep); }
+/* No pinned runway. The clip runs on its own clock, so holding the page in place
+   would only have made the reader fight the scrollbar. The hero is one ordinary
+   screen: the film plays, and scrolling away is immediate at any point. */
+.hero-outer { position: relative; height: 100vh; height: 100svh; background: var(--green-deep); }
 .hero-stage {
-  --p: 0;  /* scroll progress  */
   --v: 0;  /* playback progress */
-  position: sticky; top: 0; overflow: hidden;
-  height: 100vh; height: 100svh;
+  position: relative; overflow: hidden;
+  height: 100%;
   display: flex; align-items: flex-end;
 }
 
@@ -308,8 +307,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .hero-video { display: none; }
 .hero-stage.video-on .hero-video { display: block; }
 .hero-stage.video-on .hero-still { opacity: 0; }
-/* A touch of push on the still so the fallback is not completely inert. */
-.hero-still { transform: scale(calc(1 + var(--p) * 0.06)); transition: opacity 0.6s var(--ease); }
+.hero-still { transition: opacity 0.6s var(--ease); }
 /* The scrim exists to keep the headline legible, so it leaves with the headline.
    Holding it at full strength over the journey just fogs the photography. */
 .hero-stage::after {
@@ -338,11 +336,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .hero-ctas { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 2.2rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-outer { height: auto; }
-  .hero-stage { position: static; height: 100vh; height: 100svh; }
   .hero-video { display: none !important; }
-  .hero-still { transform: none; opacity: 1 !important; }
-  .hero-copy { transform: none; opacity: 1; }
+  .hero-still { opacity: 1 !important; }
+  .hero-copy { transform: none; opacity: 1 !important; }
 }
 
 /* ---------------- Page sections ---------------- */
@@ -449,11 +445,9 @@ a.feature-img:hover img { transform: scale(1.035); }
 @media (max-width: 900px) {
   /* No pinned scroll zoom on phones: it costs 80vh of dead scrolling before the
      page starts, and the effect is barely legible on a small screen anyway. */
-  .hero-outer { height: auto; }
-  .hero-stage { position: static; height: 100vh; height: 100svh; }
   .hero-video { display: none !important; }
-  .hero-still { transform: none; opacity: 1 !important; }
-  .hero-copy { transform: none; opacity: 1; }
+  .hero-still { opacity: 1 !important; }
+  .hero-copy { transform: none; opacity: 1 !important; }
 
   .card-grid { grid-template-columns: 1fr 1fr; gap: 2.2rem 1.2rem; }
   .lcard, .lcard.w3, .lcard.w4 { grid-column: span 1; }

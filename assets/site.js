@@ -28,11 +28,7 @@
   if (heroOuter && heroStage) {
     var motionQ = window.matchMedia('(prefers-reduced-motion: reduce)');
     var wideQ = window.matchMedia('(min-width: 901px)');
-    var queued = false, onScreen = false, running = false, slack = 1, lastP = -1, io = null;
-
-    var measure = function () {
-      slack = Math.max(1, heroOuter.offsetHeight - heroStage.offsetHeight);
-    };
+    var onScreen = false, running = false, io = null;
 
     var video = heroStage.querySelector('.hero-video');
     var videoReady = false, played = false, ticking = false;
@@ -71,40 +67,24 @@
       ticking = true;
       requestAnimationFrame(tick);
     };
-    var clamp01 = function (v) { return v < 0 ? 0 : (v > 1 ? 1 : v); };
-
-    var frame = function () {
-      queued = false;
-      var p = -heroOuter.getBoundingClientRect().top / slack;   // the single layout read
-      p = clamp01(p);
-      if (p === lastP) return;
-      lastP = p;
-
-      heroStage.style.setProperty('--p', p.toFixed(4));
-
-      // The clip plays at its own framerate rather than being scrubbed. Seeking
-      // frame by frame always looks stepped; letting it play is simply smooth.
-      if (videoReady) {
-        if (p > 0.01 && !played) {
-          played = true;
-          var attempt = video.play();
-          if (attempt && attempt.catch) attempt.catch(function () { played = false; });
-        } else if (p === 0 && played && video.ended) {
-          // back at the top: rewind so the journey can run again on the next scroll
-          played = false;
-          video.pause();
-          video.currentTime = 0;
-          publish();
-        }
+    /* The reader's first scroll starts the film. Nothing about the page is held
+       back while it runs, so they can leave whenever they like. */
+    var onScroll = function () {
+      if (!videoReady) return;
+      if (!played && onScreen) {
+        played = true;
+        var attempt = video.play();
+        if (attempt && attempt.catch) attempt.catch(function () { played = false; });
+      } else if (played && video.ended && window.scrollY < 4) {
+        // returned to the top: rewind so the journey can run again
+        played = false;
+        video.pause();
+        video.currentTime = 0;
+        publish();
       }
     };
 
-    var request = function () {
-      if (!queued && onScreen) { queued = true; requestAnimationFrame(frame); }
-    };
-    var onResize = function () { measure(); request(); };
-
-    // The clip is only fetched on screens that will actually scrub it, so phones
+    // The clip is only fetched on screens that will actually play it, so phones
     // and reduced-motion visitors never pay for a video they will not see.
     var loadVideo = function () {
       if (!video || video.getAttribute('src')) return;
@@ -113,8 +93,7 @@
       video.addEventListener('loadedmetadata', function () {
         videoReady = true;
         heroStage.classList.add('video-on');
-        lastP = -1;
-        request();
+        publish();
       }, { once: true });
       video.addEventListener('play', startTicking);
       video.addEventListener('timeupdate', publish);
@@ -130,31 +109,31 @@
     var start = function () {
       if (running) return;
       running = true;
-      measure();
       loadVideo();
-      // Nothing is computed while the hero is off screen.
+      // Don't decode a clip nobody is looking at.
       io = new IntersectionObserver(function (entries) {
         onScreen = entries[0].isIntersecting;
-        if (onScreen) { measure(); request(); }
-      });
+        if (!video) return;
+        if (!onScreen && !video.paused) {
+          video.pause();
+        } else if (onScreen && played && !video.ended && video.paused) {
+          video.play().catch(function () {});
+        }
+      }, { threshold: 0.15 });
       io.observe(heroOuter);
-      window.addEventListener('scroll', request, { passive: true });
-      window.addEventListener('resize', onResize, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true });
     };
 
     var stop = function () {
       if (!running) return;
       running = false;
       if (io) { io.disconnect(); io = null; }
-      window.removeEventListener('scroll', request);
-      window.removeEventListener('resize', onResize);
-      heroStage.style.removeProperty('--p');
+      window.removeEventListener('scroll', onScroll);
       heroStage.style.removeProperty('--v');
       heroStage.style.removeProperty('--copy-o');
       heroStage.classList.remove('video-on', 'copy-hidden');
       if (video) video.pause();
       played = false;
-      lastP = -1;
     };
 
     // Re-evaluates live, so rotating a tablet or toggling the OS motion setting
