@@ -49,7 +49,7 @@
     var publish = function () {
       if (!video || !video.duration) return;
       var v = video.currentTime / video.duration;
-      var copy = Math.max(1 - ramp(v, 0.04, 0.30), ramp(v, 0.78, 0.97));
+      var copy = Math.max(1 - ramp(v, 0.04, 0.30), ramp(v, 0.68, 0.90));
       heroStage.style.setProperty('--v', v.toFixed(4));
       heroStage.style.setProperty('--copy-o', copy.toFixed(3));
       // invisible buttons must not stay clickable
