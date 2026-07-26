@@ -300,12 +300,15 @@
       var html;
       if (p.u) {
         // The whole card is the link, so a click anywhere opens the property.
-        html = '<a class="pin-card" href="' + p.u + '">' +
+        // Listings that only exist on Compass open there, in a new tab.
+        var attrs = p.ext ? ' target="_blank" rel="noopener"' : '';
+        html = '<a class="pin-card" href="' + p.u + '"' + attrs + '>' +
                  (p.card ? '<span class="pin-photo"><img src="' + p.card + '" alt="' + esc(p.a) + '" loading="lazy">' +
                            (p.ph ? '<span class="pin-count">' + p.ph + ' photographs</span>' : '') +
                            '</span>' : '') +
                  '<span class="pin-body">' + body +
-                   '<span class="pin-link">View property</span>' +
+                   '<span class="pin-link">' +
+                     (p.ext ? 'View on Compass' : 'View property') + '</span>' +
                  '</span>' +
                '</a>';
       } else {
