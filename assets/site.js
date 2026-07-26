@@ -242,6 +242,83 @@
     });
   }
 
+  /* --- Property map ---
+     Pins are baked into the page at build time, so nothing is geocoded here and
+     the map has no API key or third-party service to depend on beyond tiles. */
+  var mapEl = document.getElementById('map');
+  if (mapEl && window.L && Array.isArray(window.EF_PINS)) {
+    var pins = window.EF_PINS;
+    var map = L.map(mapEl, { scrollWheelZoom: false, zoomControl: true });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+
+    var STYLE = {
+      active: { radius: 8, color: '#1F4634', weight: 2, fillColor: '#1F4634', fillOpacity: 0.9 },
+      sold:   { radius: 7, color: '#4A554E', weight: 2, fillColor: '#FAF8F3', fillOpacity: 0.95 }
+    };
+
+    var layers = [];
+    pins.forEach(function (p) {
+      var m = L.circleMarker(p.ll, STYLE[p.t]);
+      var html =
+        '<span class="pin-addr">' + p.a + '</span>' +
+        '<span class="pin-area">' + p.n + '</span>' +
+        '<span class="pin-row">' +
+          '<span class="pin-price">' + p.p + '</span>' +
+          (p.t === 'sold' ? '<span class="pin-sold">Sold</span>' : '') +
+          '<span class="pin-specs">' + p.s + '</span>' +
+        '</span>' +
+        (p.u ? '<a class="pin-link" href="' + p.u + '">View property</a>' : '');
+      m.bindPopup(html);
+      m.on('mouseover', function () { this.setStyle({ weight: 4 }); });
+      m.on('mouseout', function () { this.setStyle({ weight: 2 }); });
+      layers.push({ type: p.t, marker: m });
+      m.addTo(map);
+    });
+
+    var count = document.querySelector('.map-count');
+
+    /* Fit to the New Orleans core, not to every pin. Bay St. Louis and Destrehan
+       are an hour out, and including them in the fit zooms the city down to a dot,
+       which hides the thing the map exists to show: how tightly her work clusters
+       in the Garden District and Uptown. The outliers stay plotted; zoom out for them. */
+    var CORE = L.latLng(29.941, -90.085);
+    var isCore = function (l) { return CORE.distanceTo(l.marker.getLatLng()) < 12000; };
+
+    var fit = function (shown) {
+      if (!shown.length) return;
+      var use = shown.filter(isCore);
+      if (!use.length) use = shown;
+      map.fitBounds(L.latLngBounds(use.map(function (l) { return l.marker.getLatLng(); })),
+                    { padding: [50, 50], maxZoom: 15 });
+    };
+
+    var applyMap = function (key) {
+      var shown = [];
+      layers.forEach(function (l) {
+        var on = key === 'all' || l.type === key;
+        if (on) { l.marker.addTo(map); shown.push(l); } else { map.removeLayer(l.marker); }
+      });
+      if (count) count.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties');
+      document.querySelectorAll('.chip[data-map]').forEach(function (c) {
+        c.setAttribute('aria-pressed', c.getAttribute('data-map') === key ? 'true' : 'false');
+      });
+      fit(shown);
+    };
+
+    document.querySelectorAll('.chip[data-map]').forEach(function (c) {
+      c.addEventListener('click', function () { applyMap(c.getAttribute('data-map')); });
+    });
+    applyMap('all');
+
+    // Scroll wheel would otherwise swallow the page scroll; click to enable.
+    map.on('click', function () { map.scrollWheelZoom.enable(); });
+    map.on('mouseout', function () { map.scrollWheelZoom.disable(); });
+  }
+
   /* --- Gallery lightbox --- */
   var figures = document.querySelectorAll('.gallery figure');
   if (!figures.length) return;

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Map | Eleanor Farnsworth</title>
+<meta name="description" content="Every property Eleanor Farnsworth currently represents and has recently sold, mapped across New Orleans.">
+<!-- Private concept preview. Kept out of search so it can never compete with
+     eleanorfarnsworth.com or be mistaken for her live site. -->
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Map | Eleanor Farnsworth">
+<meta property="og:description" content="Every property Eleanor Farnsworth currently represents and has recently sold, mapped across New Orleans.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=6edd5e97">
+<link rel="stylesheet" href="assets/vendor/leaflet.css">
+<script defer src="assets/vendor/leaflet.js"></script>
+</head>
+<body>
+
+<nav class="nav always-solid">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-mark">Eleanor Farnsworth<small>New Orleans</small></a>
+    <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="site-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="site-menu">
+      <a href="listings.html">Listings</a>
+      <a href="sold.html">Recent Sales</a>
+      <a href="map.html" class="current">Map</a>
+      <a href="index.html#about">About</a>
+      <a href="index.html#press">Press</a>
+      <a class="nav-phone" href="tel:+15046690211">504-669-0211</a>
+      <a href="index.html#contact" class="btn btn-nav btn-ghost">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="wrap">
+    <h1 class="reveal">Where she works</h1>
+    <p class="reveal d1">17 recorded sales and 13 current listings. The view opens on
+      the city core, where nearly all of her work sits. Zoom out for Destrehan and
+      Bay St. Louis, and select any pin for the property.</p>
+  </div>
+</section>
+
+<section class="listings-body">
+  <div class="wrap">
+    <div class="filters reveal">
+      <span class="fl">Show</span>
+      <button class="chip" data-map="all" aria-pressed="true">All</button>
+      <button class="chip" data-map="active" aria-pressed="false">For sale</button>
+      <button class="chip" data-map="sold" aria-pressed="false">Sold</button>
+      <span class="filter-count map-count"></span>
+    </div>
+
+    <div id="map" class="map-canvas reveal" role="application"
+         aria-label="Map of properties represented by Eleanor Farnsworth"></div>
+    <div class="map-legend">
+      <span><i class="key key-active"></i> For sale</span>
+      <span><i class="key key-sold"></i> Sold</span>
+    </div>
+    <p class="form-note">Not plotted: 2265 Highway 39, 6502 Woodwards Bluff, 46285 Riverdale Heights Road. These sit outside the city and are listed on the <a href="listings.html">listings page</a>.</p>
+
+    <div class="also">
+      <h2 class="reveal">Sales by neighbourhood</h2>
+      <p class="reveal">Her recorded sales, grouped by where they sit.</p>
+      <table class="sold-table reveal">
+        <thead><tr><th>Neighbourhood</th><th>Sales</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          <tr><td class="addr">Uptown</td><td>6 sales</td><td class="num price">$17,544,000</td></tr>
+          <tr><td class="addr">Garden Lane</td><td>2 sales</td><td class="num price">$9,147,000</td></tr>
+          <tr><td class="addr">St. Charles Avenue</td><td>2 sales</td><td class="num price">$8,000,000</td></tr>
+          <tr><td class="addr">Garden District</td><td>3 sales</td><td class="num price">$7,000,000</td></tr>
+          <tr><td class="addr">Lower Garden District</td><td>3 sales</td><td class="num price">$6,699,000</td></tr>
+          <tr><td class="addr">French Quarter</td><td>1 sale</td><td class="num price">$2,250,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>window.EF_PINS = [{"t": "active", "ll": [29.93153, -90.08252], "a": "2423 Prytania Street", "n": "Garden District", "p": "$8,500,000", "u": "listings/2423-prytania.html", "s": "6 bd &middot; 7,995 sq ft"}, {"t": "active", "ll": [29.934807, -90.119423], "a": "1803-07 Calhoun Street", "n": "Uptown, steps from Audubon Park", "p": "$2,450,000", "u": "listings/1803-calhoun.html", "s": "10 bd &middot; 7,084 sq ft"}, {"t": "active", "ll": [29.961407, -90.061984], "a": "1101 Royal Street", "n": "French Quarter", "p": "$1,800,000", "u": "listings/1101-royal.html", "s": "3 bd &middot; 5,400 sq ft"}, {"t": "active", "ll": [29.930731, -90.121142], "a": "1526 Henry Clay Avenue", "n": "Uptown, one block from Audubon Park", "p": "$1,725,000", "u": "listings/1526-henry-clay.html", "s": "4 bd &middot; 3,844 sq ft"}, {"t": "active", "ll": [29.92649, -90.109421], "a": "5018 St. Charles Avenue", "n": "St. Charles Avenue", "p": "$1,695,000", "u": "listings/5018-st-charles.html", "s": "5 bd &middot; 3,840 sq ft"}, {"t": "active", "ll": [30.313952, -89.328029], "a": "200 Carroll Avenue", "n": "Old Town, Bay St. Louis", "p": "$1,450,000", "u": "listings/200-carroll.html", "s": "3 bd &middot; 2,496 sq ft"}, {"t": "active", "ll": [29.974322, -90.372741], "a": "10 Villere Place", "n": "Ormond Estates", "p": "$1,250,000", "u": "listings/10-villere.html", "s": "4 bd &middot; 7,084 sq ft"}, {"t": "active", "ll": [29.933971, -90.074267], "a": "1535 Camp Place", "n": "Lower Garden District", "p": "$1,425,000", "u": "", "s": "3 bd &middot; 3,300 sq ft"}, {"t": "active", "ll": [29.936734, -90.129199], "a": "501-03 Lowerline Street", "n": "Uptown", "p": "$899,000", "u": "", "s": "6 bd &middot; 4,372 sq ft"}, {"t": "active", "ll": [29.934918, -90.126664], "a": "518 Walnut Street, Unit E", "n": "Uptown", "p": "$675,000", "u": "", "s": "3 bd &middot; 1,800 sq ft"}, {"t": "active", "ll": [29.934176, -90.079919], "a": "2100 St. Charles Avenue, Unit 7M", "n": "St. Charles Avenue", "p": "$459,000", "u": "", "s": "2 bd &middot; 1,425 sq ft"}, {"t": "active", "ll": [29.944712, -90.066856], "a": "330 Julia Street, Unit 205", "n": "Warehouse District", "p": "$350,000", "u": "", "s": "2 bd &middot; 926 sq ft"}, {"t": "active", "ll": [29.975115, -90.076787], "a": "1458-60 North Dorgenois Street", "n": "Mid-City", "p": "$315,000", "u": "", "s": "2 bd &middot; 2,000 sq ft"}, {"t": "sold", "ll": [29.979255, -90.12258], "a": "1 Garden Lane", "n": "Garden Lane", "p": "$4,947,000", "u": "", "s": "10,272 sq ft"}, {"t": "sold", "ll": [29.92994, -90.116992], "a": "5800 St. Charles Avenue", "n": "St. Charles Avenue", "p": "$4,500,000", "u": "", "s": "7,312 sq ft"}, {"t": "sold", "ll": [29.932802, -90.118406], "a": "6110 Marquette Place", "n": "Uptown", "p": "$4,400,000", "u": "", "s": "8,185 sq ft"}, {"t": "sold", "ll": [29.978, -90.12264], "a": "7 Garden Lane", "n": "Garden Lane", "p": "$4,200,000", "u": "", "s": "6,551 sq ft"}, {"t": "sold", "ll": [29.931684, -90.1293], "a": "384 Walnut Street", "n": "Uptown", "p": "$3,895,000", "u": "", "s": "6,562 sq ft"}, {"t": "sold", "ll": [29.925976, -90.107051], "a": "4831 St. Charles Avenue", "n": "St. Charles Avenue", "p": "$3,500,000", "u": "", "s": "7,046 sq ft"}, {"t": "sold", "ll": [29.935172, -90.073291], "a": "1456 Camp Street", "n": "Lower Garden District", "p": "$3,100,000", "u": "", "s": "6,405 sq ft"}, {"t": "sold", "ll": [29.930716, -90.084473], "a": "1539 Fourth Street", "n": "Garden District", "p": "$3,000,000", "u": "", "s": "7,277 sq ft"}, {"t": "sold", "ll": [29.93291, -90.12784], "a": "445 Walnut Street", "n": "Uptown", "p": "$2,900,000", "u": "", "s": "4,184 sq ft"}, {"t": "sold", "ll": [29.933089, -90.116985], "a": "1721 State Street", "n": "Uptown", "p": "$2,700,000", "u": "", "s": "6,250 sq ft"}, {"t": "sold", "ll": [29.928933, -90.08778], "a": "1524 Seventh Street", "n": "Garden District", "p": "$2,500,000", "u": "", "s": "6,708 sq ft"}, {"t": "sold", "ll": [29.963403, -90.062695], "a": "1220 Dauphine Street, Unit C", "n": "French Quarter", "p": "$2,250,000", "u": "", "s": "2,846 sq ft"}, {"t": "sold", "ll": [29.93493, -90.11877], "a": "1828 Palmer Avenue", "n": "Uptown", "p": "$2,000,000", "u": "", "s": "4,694 sq ft"}, {"t": "sold", "ll": [29.929652, -90.079022], "a": "2319 Camp Street", "n": "Lower Garden District", "p": "$1,999,000", "u": "", "s": "4,052 sq ft"}, {"t": "sold", "ll": [29.931977, -90.116993], "a": "12 Rosa Park", "n": "Uptown", "p": "$1,649,000", "u": "", "s": "3,945 sq ft"}, {"t": "sold", "ll": [29.933734, -90.075706], "a": "1329 St. Mary Street", "n": "Lower Garden District", "p": "$1,600,000", "u": "", "s": "3,804 sq ft"}, {"t": "sold", "ll": [29.931115, -90.082318], "a": "1451 Second Street", "n": "Garden District", "p": "$1,500,000", "u": "", "s": "4,550 sq ft"}];</script>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-mark">Eleanor Farnsworth
+        <small>New Orleans Luxury Real Estate<br>Licensed in Louisiana &amp; Mississippi</small>
+      </div>
+      <div class="foot-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="tel:+15048911142">Office 504-891-1142</a></li>
+          <li><a href="tel:+15046690211">Cell 504-669-0211</a></li>
+          <li><a href="mailto:eleanor.farnsworth@compass.com">eleanor.farnsworth@compass.com</a></li>
+          <li>2727 Prytania Street, Suite 15<br>New Orleans, Louisiana 70130</li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="listings.html">Current listings</a></li>
+          <li><a href="sold.html">Recent sales</a></li>
+          <li><a href="index.html#about">About Eleanor</a></li>
+          <li><a href="index.html#press">Press</a></li>
+          <li><a href="https://www.instagram.com/eleanorfarnsworth/" target="_blank" rel="noopener">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="broker-block">
+      <span class="bname">Sponsoring broker: <b>Latter & Blum | Compass</b>,
+        2734 Prytania Street, New Orleans, Louisiana 70130, <a href="tel:+15048954663">504-895-4663</a></span>
+    </div>
+
+    <div class="foot-logos">
+      <img src="assets/logo-compass-white.png" alt="Compass">
+      <img src="assets/logo-whoswho.png" alt="Who's Who in Luxury Real Estate" class="tall">
+      <img src="assets/logo-fairhousing.png" alt="Equal Housing Opportunity">
+    </div>
+    <div class="foot-base">
+      <span>&copy; 2026 Eleanor Farnsworth, REALTOR&reg;. Equal Housing Opportunity.</span>
+      <span>All information deemed reliable but not guaranteed. Prices subject to change.</span>
+    </div>
+  </div>
+</footer>
+<script defer src="assets/site.js?v=2e4ac017"></script>
+</body>
+</html>
