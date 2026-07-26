@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/site.css?v=1116dadd">
+<link rel="stylesheet" href="../assets/site.css?v=01758f03">
 </head>
 <body>
 
@@ -56,6 +56,26 @@
         <div class="spec"><dt>Baths</dt><dd>3 full, 2 half</dd></div>
         <div class="spec"><dt>Interior</dt><dd>3,840 sq ft</dd></div>
     </dl>
+    <div class="ldetail-tools">
+      <button class="tool" data-save="5018-st-charles" aria-pressed="false">
+        <span class="tool-on">Saved</span><span class="tool-off">Save</span>
+      </button>
+      <button class="tool" data-share="5018 St. Charles Avenue">Share</button>
+      <button class="tool" data-print>Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Follows the reader down a long page so the price and the way to reach her are
+     never more than a glance away. -->
+<div class="sticky-bar" data-sticky-bar hidden>
+  <div class="wrap">
+    <div class="sb-id">
+      <span class="sb-addr">5018 St. Charles Avenue</span>
+      <span class="sb-place">St. Charles Avenue</span>
+    </div>
+    <span class="sb-price">$1,695,000</span>
+    <a href="tel:+15046690211" class="btn">Arrange a viewing</a>
   </div>
 </div>
 
@@ -86,11 +106,38 @@
       <ul class="lines">
         <li><span>Office</span><span><a href="tel:+15048911142">504-891-1142</a></span></li>
         <li><span>Cell</span><span><a href="tel:+15046690211">504-669-0211</a></span></li>
-        <li><span>Email</span><span><a href="mailto:eleanor.farnsworth@compass.com">Email Eleanor</a></span></li>
+        <li><span>Email</span><span><a href="mailto:eleanor.farnsworth@compass.com" data-email="eleanor.farnsworth@compass.com">Email Eleanor</a></span></li>
       </ul>
       <a href="tel:+15046690211" class="btn">Arrange a viewing</a>
       <p class="mls">Latter & Blum | Compass, 504-895-4663. Licensed in Louisiana and Mississippi.
         Information deemed reliable but not guaranteed.</p>
+
+      <!-- Runs entirely in the browser. Every input is editable because none of these
+           figures should be presented as a quote. -->
+      <div class="calc" data-calc data-price="1695000">
+        <h3>Estimate a monthly payment</h3>
+        <label>Down payment
+          <span class="calc-row">
+            <input type="number" data-calc-down value="20" min="0" max="100" step="1"> %
+          </span>
+        </label>
+        <label>Interest rate
+          <span class="calc-row">
+            <input type="number" data-calc-rate value="6.5" min="0" max="25" step="0.1"> %
+          </span>
+        </label>
+        <label>Term
+          <span class="calc-row">
+            <input type="number" data-calc-years value="30" min="1" max="40" step="1"> years
+          </span>
+        </label>
+        <div class="calc-out">
+          <span class="calc-amount" data-calc-out>&mdash;</span>
+          <span class="calc-sub" data-calc-sub></span>
+        </div>
+        <p class="calc-note">Principal and interest only. Excludes taxes, insurance and
+          fees. An illustration, not a quote or an offer of credit.</p>
+      </div>
     </aside>
   </div>
 
@@ -126,47 +173,62 @@
       <a href="../listings.html" class="count">View all</a>
     </div>
     <div class="card-grid">
-      <a class="lcard  reveal" href="../listings/200-carroll.html" data-area="Old Town">
-        <div class="lcard-img">
-          <img src="../assets/listings/200-carroll/card-lg.jpg" alt="200 Carroll Avenue, Old Town, Bay St. Louis" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>200 Carroll Avenue</h3>
-          <div class="lcard-place">Old Town, Bay St. Louis</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,450,000</span>
-            <span class="lcard-specs">3 bd &middot; 2 full, 1 half &middot; 2,496 sq ft</span>
+      <div class="lcard  reveal" data-area="Old Town"
+           data-price="1450000" data-beds="3" data-slug="200-carroll">
+        <a class="lcard-link" href="../listings/200-carroll.html">
+          <div class="lcard-img">
+            <img src="../assets/listings/200-carroll/card-lg.jpg" alt="200 Carroll Avenue, Old Town, Bay St. Louis" loading="lazy">
           </div>
-        </div>
-      </a>
+          <div class="lcard-body">
+            <h3>200 Carroll Avenue</h3>
+            <div class="lcard-place">Old Town, Bay St. Louis</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,450,000</span>
+              <span class="lcard-specs">3 bd &middot; 2 full, 1 half &middot; 2,496 sq ft</span>
+            </div>
+          </div>
+        </a>
+        <button class="save-pin" data-save="200-carroll" aria-pressed="false"
+                aria-label="Save 200 Carroll Avenue"></button>
+      </div>
 
-      <a class="lcard  reveal" href="../listings/10-villere.html" data-area="Ormond Estates">
-        <div class="lcard-img">
-          <img src="../assets/listings/10-villere/card-lg.jpg" alt="10 Villere Place, Ormond Estates" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>10 Villere Place</h3>
-          <div class="lcard-place">Ormond Estates</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,250,000</span>
-            <span class="lcard-specs">4 bd &middot; 6 full, 2 half &middot; 7,084 sq ft</span>
+      <div class="lcard  reveal" data-area="Ormond Estates"
+           data-price="1250000" data-beds="4" data-slug="10-villere">
+        <a class="lcard-link" href="../listings/10-villere.html">
+          <div class="lcard-img">
+            <img src="../assets/listings/10-villere/card-lg.jpg" alt="10 Villere Place, Ormond Estates" loading="lazy">
           </div>
-        </div>
-      </a>
+          <div class="lcard-body">
+            <h3>10 Villere Place</h3>
+            <div class="lcard-place">Ormond Estates</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,250,000</span>
+              <span class="lcard-specs">4 bd &middot; 6 full, 2 half &middot; 7,084 sq ft</span>
+            </div>
+          </div>
+        </a>
+        <button class="save-pin" data-save="10-villere" aria-pressed="false"
+                aria-label="Save 10 Villere Place"></button>
+      </div>
 
-      <a class="lcard  reveal" href="../listings/1535-camp.html" data-area="Lower Garden District">
-        <div class="lcard-img">
-          <img src="../assets/listings/1535-camp/card-lg.jpg" alt="1535 Camp Place, Lower Garden District" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>1535 Camp Place</h3>
-          <div class="lcard-place">Lower Garden District</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,425,000</span>
-            <span class="lcard-specs">3 bd &middot; 3 &middot; 3,300 sq ft</span>
+      <div class="lcard  reveal" data-area="Lower Garden District"
+           data-price="1425000" data-beds="3" data-slug="1535-camp">
+        <a class="lcard-link" href="../listings/1535-camp.html">
+          <div class="lcard-img">
+            <img src="../assets/listings/1535-camp/card-lg.jpg" alt="1535 Camp Place, Lower Garden District" loading="lazy">
           </div>
-        </div>
-      </a>
+          <div class="lcard-body">
+            <h3>1535 Camp Place</h3>
+            <div class="lcard-place">Lower Garden District</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,425,000</span>
+              <span class="lcard-specs">3 bd &middot; 3 &middot; 3,300 sq ft</span>
+            </div>
+          </div>
+        </a>
+        <button class="save-pin" data-save="1535-camp" aria-pressed="false"
+                aria-label="Save 1535 Camp Place"></button>
+      </div>
     </div>
   </section>
 </div>
@@ -214,6 +276,6 @@
     </div>
   </div>
 </footer>
-<script defer src="../assets/site.js?v=71c76054"></script>
+<script defer src="../assets/site.js?v=1f619f44"></script>
 </body>
 </html>

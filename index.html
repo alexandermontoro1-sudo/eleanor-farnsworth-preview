@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=1116dadd">
+<link rel="stylesheet" href="assets/site.css?v=01758f03">
 </head>
 <body>
 
@@ -118,71 +118,96 @@
       <a href="listings.html" class="more">View all</a>
     </div>
     <div class="card-grid">
-      <a class="lcard w3 reveal" href="listings/1803-calhoun.html" data-area="Uptown">
-        <div class="lcard-img">
-          <img src="assets/listings/1803-calhoun/card-lg.jpg" alt="1803-07 Calhoun Street, Uptown, steps from Audubon Park" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>1803-07 Calhoun Street</h3>
-          <div class="lcard-place">Uptown, steps from Audubon Park</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$2,450,000</span>
-            <span class="lcard-specs">10 bd &middot; 6 full, 2 half &middot; 7,084 sq ft</span>
+      <div class="lcard w3 reveal" data-area="Uptown"
+           data-price="2450000" data-beds="10" data-slug="1803-calhoun">
+        <a class="lcard-link" href="listings/1803-calhoun.html">
+          <div class="lcard-img">
+            <img src="assets/listings/1803-calhoun/card-lg.jpg" alt="1803-07 Calhoun Street, Uptown, steps from Audubon Park" loading="lazy">
           </div>
-        </div>
-      </a>
-      <a class="lcard w3 reveal" href="listings/1101-royal.html" data-area="French Quarter">
-        <div class="lcard-img">
-          <img src="assets/listings/1101-royal/card-lg.jpg" alt="1101 Royal Street, French Quarter" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>1101 Royal Street</h3>
-          <div class="lcard-place">French Quarter</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,800,000</span>
-            <span class="lcard-specs">3 bd &middot; 2 full, 1 half &middot; 5,400 sq ft</span>
+          <div class="lcard-body">
+            <h3>1803-07 Calhoun Street</h3>
+            <div class="lcard-place">Uptown, steps from Audubon Park</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$2,450,000</span>
+              <span class="lcard-specs">10 bd &middot; 6 full, 2 half &middot; 7,084 sq ft</span>
+            </div>
           </div>
-        </div>
-      </a>
-      <a class="lcard  reveal" href="listings/1526-henry-clay.html" data-area="Uptown">
-        <div class="lcard-img">
-          <img src="assets/listings/1526-henry-clay/card-lg.jpg" alt="1526 Henry Clay Avenue, Uptown, one block from Audubon Park" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>1526 Henry Clay Avenue</h3>
-          <div class="lcard-place">Uptown, one block from Audubon Park</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,725,000</span>
-            <span class="lcard-specs">4 bd &middot; 3 full, 1 half &middot; 3,844 sq ft</span>
+        </a>
+        <button class="save-pin" data-save="1803-calhoun" aria-pressed="false"
+                aria-label="Save 1803-07 Calhoun Street"></button>
+      </div>
+      <div class="lcard w3 reveal" data-area="French Quarter"
+           data-price="1800000" data-beds="3" data-slug="1101-royal">
+        <a class="lcard-link" href="listings/1101-royal.html">
+          <div class="lcard-img">
+            <img src="assets/listings/1101-royal/card-lg.jpg" alt="1101 Royal Street, French Quarter" loading="lazy">
           </div>
-        </div>
-      </a>
-      <a class="lcard  reveal" href="listings/5018-st-charles.html" data-area="St. Charles Avenue">
-        <div class="lcard-img">
-          <img src="assets/listings/5018-st-charles/card-lg.jpg" alt="5018 St. Charles Avenue, St. Charles Avenue" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>5018 St. Charles Avenue</h3>
-          <div class="lcard-place">St. Charles Avenue</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,695,000</span>
-            <span class="lcard-specs">5 bd &middot; 3 full, 2 half &middot; 3,840 sq ft</span>
+          <div class="lcard-body">
+            <h3>1101 Royal Street</h3>
+            <div class="lcard-place">French Quarter</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,800,000</span>
+              <span class="lcard-specs">3 bd &middot; 2 full, 1 half &middot; 5,400 sq ft</span>
+            </div>
           </div>
-        </div>
-      </a>
-      <a class="lcard  reveal" href="listings/200-carroll.html" data-area="Old Town">
-        <div class="lcard-img">
-          <img src="assets/listings/200-carroll/card-lg.jpg" alt="200 Carroll Avenue, Old Town, Bay St. Louis" loading="lazy">
-        </div>
-        <div class="lcard-body">
-          <h3>200 Carroll Avenue</h3>
-          <div class="lcard-place">Old Town, Bay St. Louis</div>
-          <div class="lcard-line">
-            <span class="lcard-price">$1,450,000</span>
-            <span class="lcard-specs">3 bd &middot; 2 full, 1 half &middot; 2,496 sq ft</span>
+        </a>
+        <button class="save-pin" data-save="1101-royal" aria-pressed="false"
+                aria-label="Save 1101 Royal Street"></button>
+      </div>
+      <div class="lcard  reveal" data-area="Uptown"
+           data-price="1725000" data-beds="4" data-slug="1526-henry-clay">
+        <a class="lcard-link" href="listings/1526-henry-clay.html">
+          <div class="lcard-img">
+            <img src="assets/listings/1526-henry-clay/card-lg.jpg" alt="1526 Henry Clay Avenue, Uptown, one block from Audubon Park" loading="lazy">
           </div>
-        </div>
-      </a>
+          <div class="lcard-body">
+            <h3>1526 Henry Clay Avenue</h3>
+            <div class="lcard-place">Uptown, one block from Audubon Park</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,725,000</span>
+              <span class="lcard-specs">4 bd &middot; 3 full, 1 half &middot; 3,844 sq ft</span>
+            </div>
+          </div>
+        </a>
+        <button class="save-pin" data-save="1526-henry-clay" aria-pressed="false"
+                aria-label="Save 1526 Henry Clay Avenue"></button>
+      </div>
+      <div class="lcard  reveal" data-area="St. Charles Avenue"
+           data-price="1695000" data-beds="5" data-slug="5018-st-charles">
+        <a class="lcard-link" href="listings/5018-st-charles.html">
+          <div class="lcard-img">
+            <img src="assets/listings/5018-st-charles/card-lg.jpg" alt="5018 St. Charles Avenue, St. Charles Avenue" loading="lazy">
+          </div>
+          <div class="lcard-body">
+            <h3>5018 St. Charles Avenue</h3>
+            <div class="lcard-place">St. Charles Avenue</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,695,000</span>
+              <span class="lcard-specs">5 bd &middot; 3 full, 2 half &middot; 3,840 sq ft</span>
+            </div>
+          </div>
+        </a>
+        <button class="save-pin" data-save="5018-st-charles" aria-pressed="false"
+                aria-label="Save 5018 St. Charles Avenue"></button>
+      </div>
+      <div class="lcard  reveal" data-area="Old Town"
+           data-price="1450000" data-beds="3" data-slug="200-carroll">
+        <a class="lcard-link" href="listings/200-carroll.html">
+          <div class="lcard-img">
+            <img src="assets/listings/200-carroll/card-lg.jpg" alt="200 Carroll Avenue, Old Town, Bay St. Louis" loading="lazy">
+          </div>
+          <div class="lcard-body">
+            <h3>200 Carroll Avenue</h3>
+            <div class="lcard-place">Old Town, Bay St. Louis</div>
+            <div class="lcard-line">
+              <span class="lcard-price">$1,450,000</span>
+              <span class="lcard-specs">3 bd &middot; 2 full, 1 half &middot; 2,496 sq ft</span>
+            </div>
+          </div>
+        </a>
+        <button class="save-pin" data-save="200-carroll" aria-pressed="false"
+                aria-label="Save 200 Carroll Avenue"></button>
+      </div>
     </div>
   </div>
 </section>
@@ -413,6 +438,6 @@
     </div>
   </div>
 </footer>
-<script defer src="assets/site.js?v=71c76054"></script>
+<script defer src="assets/site.js?v=1f619f44"></script>
 </body>
 </html>

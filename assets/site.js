@@ -185,27 +185,199 @@
     });
   }
 
-  /* --- Listing filter --- */
-  var chips = document.querySelectorAll('.chip[data-filter]');
-  if (chips.length) {
-    var cards = document.querySelectorAll('[data-area]');
-    var out = document.querySelector('.filter-count');
-    var apply = function (key) {
-      var shown = 0;
-      Array.prototype.forEach.call(cards, function (c) {
-        var match = key === 'all' || c.getAttribute('data-area') === key;
-        c.hidden = !match;
-        if (match) shown++;
-      });
-      if (out) out.textContent = shown + (shown === 1 ? ' property' : ' properties');
-      Array.prototype.forEach.call(chips, function (ch) {
-        ch.setAttribute('aria-pressed', ch.getAttribute('data-filter') === key ? 'true' : 'false');
-      });
-    };
-    Array.prototype.forEach.call(chips, function (ch) {
-      ch.addEventListener('click', function () { apply(ch.getAttribute('data-filter')); });
+  /* --- Saved properties ---
+     Kept in localStorage. No account, no backend, nothing leaves the browser. */
+  var SAVE_KEY = 'ef-saved';
+  var readSaved = function () {
+    try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || []; }
+    catch (e) { return []; }
+  };
+  var writeSaved = function (list) {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(list)); } catch (e) {}
+  };
+  var syncSaveButtons = function () {
+    var saved = readSaved();
+    document.querySelectorAll('[data-save]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed',
+        saved.indexOf(btn.getAttribute('data-save')) > -1 ? 'true' : 'false');
     });
-    apply('all');
+  };
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-save]');
+    if (!btn) return;
+    e.preventDefault();
+    var slug = btn.getAttribute('data-save');
+    var saved = readSaved();
+    var i = saved.indexOf(slug);
+    if (i > -1) { saved.splice(i, 1); } else { saved.push(slug); }
+    writeSaved(saved);
+    syncSaveButtons();
+    if (window.__efApplyFilters) window.__efApplyFilters();
+  });
+  syncSaveButtons();
+
+  /* --- Listing filters, sort and saved view --- */
+  var areaChips = document.querySelectorAll('.chip[data-filter]');
+  var grid = document.querySelector('.listings-body .card-grid');
+  if (areaChips.length && grid) {
+    var cards = [].slice.call(grid.querySelectorAll('.lcard'));
+    var out = document.querySelector('.filter-count');
+    var sortSel = document.querySelector('[data-sort]');
+    var savedBtn = document.querySelector('[data-show-saved]');
+    var state = { area: 'all', priceMin: 0, priceMax: Infinity, beds: 0, savedOnly: false };
+
+    var press = function (nodes, active) {
+      nodes.forEach(function (n) { n.setAttribute('aria-pressed', n === active ? 'true' : 'false'); });
+    };
+
+    var applyFilters = function () {
+      var saved = readSaved();
+      var shown = 0;
+      cards.forEach(function (c) {
+        var price = +c.getAttribute('data-price');
+        var beds = +c.getAttribute('data-beds');
+        var ok = (state.area === 'all' || c.getAttribute('data-area') === state.area)
+              && price >= state.priceMin && price <= state.priceMax
+              && beds >= state.beds
+              && (!state.savedOnly || saved.indexOf(c.getAttribute('data-slug')) > -1);
+        c.hidden = !ok;
+        if (ok) shown++;
+      });
+      if (out) {
+        out.textContent = shown === 0
+          ? (state.savedOnly ? 'Nothing saved yet' : 'No matches')
+          : shown + (shown === 1 ? ' property' : ' properties');
+      }
+    };
+    window.__efApplyFilters = applyFilters;
+
+    var sortCards = function (mode) {
+      var by = {
+        'price-desc': function (a, b) { return b.p - a.p; },
+        'price-asc':  function (a, b) { return a.p - b.p; },
+        'beds-desc':  function (a, b) { return b.bd - a.bd || b.p - a.p; },
+        'size-desc':  function (a, b) { return b.sq - a.sq || b.p - a.p; }
+      }[mode];
+      if (!by) return;
+      cards.map(function (c) {
+        return {
+          el: c, p: +c.getAttribute('data-price'), bd: +c.getAttribute('data-beds'),
+          sq: parseInt((c.querySelector('.lcard-specs') || {}).textContent
+                       ? c.querySelector('.lcard-specs').textContent.replace(/[^0-9]/g, '').slice(-6)
+                       : '0', 10) || 0
+        };
+      }).sort(by).forEach(function (o) { grid.appendChild(o.el); });
+    };
+
+    areaChips.forEach(function (ch) {
+      ch.addEventListener('click', function () {
+        state.area = ch.getAttribute('data-filter');
+        press([].slice.call(areaChips), ch);
+        applyFilters();
+      });
+    });
+
+    // Scoped to .chip on purpose: the cards carry data-price and data-beds too, and
+    // an unscoped selector would bind chip handlers to every card on the page.
+    var priceChips = [].slice.call(document.querySelectorAll('.chip[data-price-max],.chip[data-price-min]'));
+    priceChips.forEach(function (ch) {
+      ch.addEventListener('click', function () {
+        var max = ch.getAttribute('data-price-max');
+        var min = ch.getAttribute('data-price-min');
+        state.priceMin = min ? +min : 0;
+        state.priceMax = (max && max !== 'all') ? +max : Infinity;
+        press(priceChips, ch);
+        applyFilters();
+      });
+    });
+
+    var bedChips = [].slice.call(document.querySelectorAll('.chip[data-beds]'));
+    bedChips.forEach(function (ch) {
+      ch.addEventListener('click', function () {
+        var v = ch.getAttribute('data-beds');
+        state.beds = v === 'all' ? 0 : +v;
+        press(bedChips, ch);
+        applyFilters();
+      });
+    });
+
+    if (savedBtn) {
+      savedBtn.addEventListener('click', function () {
+        state.savedOnly = !state.savedOnly;
+        savedBtn.setAttribute('aria-pressed', state.savedOnly ? 'true' : 'false');
+        applyFilters();
+      });
+    }
+    if (sortSel) {
+      sortSel.addEventListener('change', function () { sortCards(sortSel.value); });
+      sortCards(sortSel.value);
+    }
+    applyFilters();
+  }
+
+  /* --- Sticky property bar --- */
+  var stickyBar = document.querySelector('[data-sticky-bar]');
+  if (stickyBar) {
+    var anchor = document.querySelector('.ldetail-bar');
+    var foot = document.querySelector('.site-foot');
+    if (anchor && 'IntersectionObserver' in window) {
+      var past = false, nearFoot = false;
+      var render = function () { stickyBar.hidden = !(past && !nearFoot); };
+      new IntersectionObserver(function (e) {
+        past = e[0].boundingClientRect.top < 0;
+        render();
+      }, { threshold: 0 }).observe(anchor);
+      if (foot) {
+        new IntersectionObserver(function (e) {
+          nearFoot = e[0].isIntersecting;
+          render();
+        }, { rootMargin: '0px 0px -40% 0px' }).observe(foot);
+      }
+    }
+  }
+
+  /* --- Share and print --- */
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest && e.target.closest('[data-share]');
+    if (s) {
+      var data = { title: s.getAttribute('data-share'), url: location.href };
+      if (navigator.share) {
+        navigator.share(data).catch(function () {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(location.href).then(function () {
+          var was = s.textContent;
+          s.textContent = 'Link copied';
+          setTimeout(function () { s.textContent = was; }, 1800);
+        });
+      }
+    }
+    if (e.target.closest && e.target.closest('[data-print]')) window.print();
+  });
+
+  /* --- Payment estimate --- */
+  var calc = document.querySelector('[data-calc]');
+  if (calc) {
+    var price = +calc.getAttribute('data-price');
+    var fmt = function (n) {
+      return '$' + Math.round(n).toLocaleString('en-US');
+    };
+    var run = function () {
+      var downPct = +calc.querySelector('[data-calc-down]').value || 0;
+      var rate = +calc.querySelector('[data-calc-rate]').value || 0;
+      var years = +calc.querySelector('[data-calc-years]').value || 30;
+      var principal = price * (1 - downPct / 100);
+      var r = rate / 100 / 12;
+      var n = years * 12;
+      // straight amortisation; a zero rate would divide by zero, so handle it
+      var m = r > 0 ? principal * r / (1 - Math.pow(1 + r, -n)) : principal / n;
+      calc.querySelector('[data-calc-out]').textContent = isFinite(m) ? fmt(m) + ' / month' : '—';
+      calc.querySelector('[data-calc-sub]').textContent =
+        fmt(price * downPct / 100) + ' down, ' + fmt(principal) + ' financed';
+    };
+    calc.querySelectorAll('input').forEach(function (i) {
+      i.addEventListener('input', run);
+    });
+    run();
   }
 
   /* --- Contact form ---

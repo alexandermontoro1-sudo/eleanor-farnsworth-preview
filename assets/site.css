@@ -494,6 +494,95 @@ a.feature-img:hover img { transform: scale(1.035); }
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); }
 .pin-link::after { content: " \2192"; }
 
+/* ---------------- Listing tools ---------------- */
+.ldetail-tools { display: flex; gap: 0.5rem; }
+.tool { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft); border: 1px solid var(--hairline); padding: 0.55rem 1rem;
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease); }
+.tool:hover { border-color: var(--green); color: var(--green); }
+.tool .tool-on { display: none; }
+.tool[aria-pressed="true"] { border-color: var(--green); color: var(--green); }
+.tool[aria-pressed="true"] .tool-on { display: inline; }
+.tool[aria-pressed="true"] .tool-off { display: none; }
+
+/* Save pin on a card */
+.lcard { position: relative; }
+.lcard-link { display: block; color: inherit; }
+.save-pin { position: absolute; top: 0.7rem; right: 0.7rem; width: 34px; height: 34px;
+  border-radius: 50%; background: rgba(250, 248, 243, 0.9); backdrop-filter: blur(4px);
+  display: grid; place-items: center; opacity: 0; transform: translateY(-4px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), background 0.3s var(--ease); }
+.lcard:hover .save-pin, .save-pin:focus-visible, .save-pin[aria-pressed="true"] {
+  opacity: 1; transform: none;
+}
+.save-pin::before { content: ""; width: 13px; height: 13px; border: 1.5px solid var(--ink);
+  border-radius: 2px 2px 0 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%); }
+.save-pin[aria-pressed="true"] { background: var(--green); }
+.save-pin[aria-pressed="true"]::before { border-color: var(--paper); background: var(--paper); }
+
+.filters-2 { margin-top: -0.6rem; }
+.fl-gap { margin-left: 1.2rem; }
+.sort-select { font: inherit; font-size: 0.8rem; color: var(--ink-soft); background: var(--paper);
+  border: 1px solid var(--hairline); padding: 0.5rem 0.7rem; }
+.chip-saved { margin-left: 1.2rem; }
+
+/* ---------------- Sticky property bar ---------------- */
+.sticky-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: rgba(250, 248, 243, 0.96); backdrop-filter: saturate(160%) blur(12px);
+  border-top: 1px solid var(--hairline); animation: sbUp 0.35s var(--ease) both; }
+@keyframes sbUp { from { transform: translateY(100%); } to { transform: none; } }
+.sticky-bar[hidden] { display: none; }
+.sticky-bar .wrap { display: flex; align-items: center; gap: 1.5rem;
+  padding-top: 0.85rem; padding-bottom: 0.85rem; }
+.sb-addr { font-family: var(--serif); font-size: 1.15rem; display: block; line-height: 1.15; }
+.sb-place { font-size: 0.75rem; color: var(--ink-mute); }
+.sb-price { font-family: var(--serif); font-size: 1.35rem; color: var(--green); margin-left: auto; }
+@media (max-width: 620px) {
+  .sb-place { display: none; }
+  .sticky-bar .wrap { gap: 0.9rem; }
+  .sb-price { font-size: 1.1rem; }
+  .sticky-bar .btn { padding: 0.7rem 1rem; font-size: 0.7rem; }
+}
+
+/* ---------------- Payment estimate ---------------- */
+.calc { margin-top: 1.6rem; padding-top: 1.4rem; border-top: 1px solid var(--hairline); }
+.calc h3 { font-family: var(--sans); font-size: 0.68rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-mute); font-weight: 500; margin-bottom: 1rem; }
+.calc label { display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; font-size: 0.86rem; color: var(--ink-soft); margin-bottom: 0.6rem; }
+.calc-row { display: inline-flex; align-items: baseline; gap: 0.35rem; font-size: 0.82rem; color: var(--ink-mute); }
+.calc input { width: 72px; font: inherit; font-size: 0.9rem; text-align: right;
+  border: 1px solid var(--hairline); background: var(--paper); padding: 0.35rem 0.5rem; color: var(--ink); }
+.calc input:focus { border-color: var(--green); outline: none; }
+.calc-out { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--hairline); }
+.calc-amount { font-family: var(--serif); font-size: 1.6rem; color: var(--green); display: block; }
+.calc-sub { font-size: 0.78rem; color: var(--ink-mute); }
+.calc-note { font-size: 0.68rem; color: var(--ink-mute); margin-top: 0.7rem; line-height: 1.5; }
+
+/* ---------------- Print ----------------
+   A property sheet an agent can actually hand over: identity, price, specs and the
+   description. Navigation, video, galleries and tools are all noise on paper. */
+@media print {
+  .nav, .sticky-bar, .ldetail-tools, .gallery-sec, .site-foot, .calc,
+  .hero-video, .agent-card .btn, .filters, .map-canvas { display: none !important; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .ldetail-hero { height: 260px; }
+  /* Keep the scrim: without it the white address sits on a bright photo and
+     disappears on paper. */
+  .ldetail-hero::after { opacity: 1; }
+  .ldetail-hero-copy { color: #fff; }
+  /* Print the address itself, since a "mailto" link is useless on paper. */
+  .agent-card .lines a[href^="mailto:"] { font-size: 0; }
+  .agent-card .lines a[href^="mailto:"]::after {
+    content: attr(data-email); font-size: 0.88rem;
+  }
+  .ldetail-main { display: block; padding-top: 1rem; }
+  .agent-card { border-top: 1px solid #000; margin-top: 1.5rem; padding: 1rem 0; background: none; }
+  .ldetail-copy p, .feature-list li { color: #000; }
+  a[href^="http"]::after { content: ""; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+}
+
 /* ---------------- Press archive ---------------- */
 .press-year { margin-bottom: clamp(2.2rem, 4vw, 3.4rem); }
 .press-year h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); color: var(--green);
