@@ -494,6 +494,21 @@ a.feature-img:hover img { transform: scale(1.035); }
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); }
 .pin-link::after { content: " \2192"; }
 
+/* ---------------- Area guides ---------------- */
+.area-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(1.6rem, 3vw, 2.8rem); }
+.area { border-top: 1px solid var(--hairline); padding-top: 1.3rem; }
+.area h3 { font-size: clamp(1.35rem, 2vw, 1.7rem); }
+.area p { color: var(--ink-soft); font-size: 0.94rem; margin-top: 0.6rem; max-width: 52ch; }
+.area-facts { display: flex; flex-wrap: wrap; gap: 0.4rem 1.6rem; margin-top: 1rem;
+  font-size: 0.85rem; color: var(--ink-mute); }
+.area-facts b { font-family: var(--serif); font-size: 1.15rem; color: var(--green);
+  font-weight: 500; margin-right: 0.25rem; }
+.area-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; margin-top: 0.9rem; }
+.area-links a { font-size: 0.83rem; color: var(--green);
+  border-bottom: 1px solid rgba(31, 70, 52, 0.4); padding-bottom: 2px; }
+.area-links a:hover { border-bottom-color: var(--green); }
+@media (max-width: 820px) { .area-grid { grid-template-columns: 1fr; } }
+
 .map-legend { display: flex; gap: 1.6rem; align-items: center; padding-top: 0.9rem;
   font-size: 0.8rem; color: var(--ink-soft); }
 .map-legend span { display: inline-flex; align-items: center; gap: 0.5rem; }

@@ -209,13 +209,38 @@
   }
 
   /* --- Contact form ---
-     No backend on a static build, so this composes the message into the visitor's
-     mail client addressed to Eleanor. Swap for Formspree or Netlify Forms at launch. */
+     Posts to data-endpoint when one is configured in build.py. Until then it falls
+     back to composing the message in the visitor's mail client. */
   var form = document.querySelector('form[data-mailto]');
   if (form) {
+    var note = form.querySelector('.form-note');
+    var say = function (msg) { if (note) note.textContent = msg; };
+    var phone = form.getAttribute('data-phone') || '';
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (!form.reportValidity()) return;
+
+      // A real endpoint posts in place; without one we fall back to the mail client.
+      var endpoint = form.getAttribute('data-endpoint');
+      if (endpoint) {
+        var btn = form.querySelector('button[type=submit]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending'; }
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: new FormData(form)
+        }).then(function (res) {
+          if (!res.ok) throw new Error(res.status);
+          form.reset();
+          say('Thank you. Your message has been sent and Eleanor will reply personally.');
+          if (btn) btn.textContent = 'Sent';
+        }).catch(function () {
+          say('That did not send. Please call or text ' + phone + '.');
+          if (btn) { btn.disabled = false; btn.textContent = 'Send to Eleanor'; }
+        });
+        return;
+      }
       var get = function (n) {
         var el = form.elements[n];
         return el ? String(el.value).trim() : '';
