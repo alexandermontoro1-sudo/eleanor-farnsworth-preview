@@ -260,21 +260,59 @@
       sold:   { radius: 7, color: '#4A554E', weight: 2, fillColor: '#FAF8F3', fillOpacity: 0.95 }
     };
 
+    var esc = function (s) {
+      return String(s).replace(/&(?![a-z]+;)/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    };
+
     var layers = [];
     pins.forEach(function (p) {
-      var m = L.circleMarker(p.ll, STYLE[p.t]);
-      var html =
-        '<span class="pin-addr">' + p.a + '</span>' +
-        '<span class="pin-area">' + p.n + '</span>' +
+      var m;
+      if (p.img) {
+        // A photographed listing carries its own photograph as the marker.
+        m = L.marker(p.ll, {
+          icon: L.divIcon({
+            className: 'photo-pin-wrap',
+            // not lazy: a marker sitting outside the opening view would otherwise
+            // render as an empty circle until the reader panned to it
+            html: '<span class="photo-pin"><img src="' + p.img + '" alt=""></span>',
+            iconSize: [46, 46],
+            iconAnchor: [23, 23],
+            popupAnchor: [0, -24]
+          }),
+          riseOnHover: true,
+          title: p.a
+        });
+      } else {
+        m = L.circleMarker(p.ll, STYLE[p.t]);
+        m.on('mouseover', function () { this.setStyle({ weight: 4 }); });
+        m.on('mouseout', function () { this.setStyle({ weight: 2 }); });
+      }
+
+      var body =
+        '<span class="pin-addr">' + esc(p.a) + '</span>' +
+        '<span class="pin-area">' + esc(p.n) + '</span>' +
         '<span class="pin-row">' +
           '<span class="pin-price">' + p.p + '</span>' +
           (p.t === 'sold' ? '<span class="pin-sold">Sold</span>' : '') +
           '<span class="pin-specs">' + p.s + '</span>' +
-        '</span>' +
-        (p.u ? '<a class="pin-link" href="' + p.u + '">View property</a>' : '');
-      m.bindPopup(html);
-      m.on('mouseover', function () { this.setStyle({ weight: 4 }); });
-      m.on('mouseout', function () { this.setStyle({ weight: 2 }); });
+        '</span>';
+
+      var html;
+      if (p.u) {
+        // The whole card is the link, so a click anywhere opens the property.
+        html = '<a class="pin-card" href="' + p.u + '">' +
+                 (p.card ? '<span class="pin-photo"><img src="' + p.card + '" alt="' + esc(p.a) + '" loading="lazy">' +
+                           (p.ph ? '<span class="pin-count">' + p.ph + ' photographs</span>' : '') +
+                           '</span>' : '') +
+                 '<span class="pin-body">' + body +
+                   '<span class="pin-link">View property</span>' +
+                 '</span>' +
+               '</a>';
+      } else {
+        html = '<span class="pin-card pin-card-static"><span class="pin-body">' + body + '</span></span>';
+      }
+
+      m.bindPopup(html, { minWidth: p.card ? 260 : 200, maxWidth: 300, closeButton: true });
       layers.push({ type: p.t, marker: m });
       m.addTo(map);
     });
