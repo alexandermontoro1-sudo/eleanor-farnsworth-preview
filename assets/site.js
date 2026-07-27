@@ -404,6 +404,57 @@
     applyFilters();
   }
 
+  /* --- Press index filter --- */
+  var outletBtns = [].slice.call(document.querySelectorAll('.seg-btn[data-outlet]'));
+  var pIndex = document.querySelector('[data-press-index]');
+  if (outletBtns.length && pIndex) {
+    var pItems = [].slice.call(pIndex.querySelectorAll('.pitem'));
+    var pCount = document.querySelector('.press-count');
+    var pClear = document.querySelector('[data-outlet-clear]');
+    var pMore = document.querySelector('[data-press-more]');
+    var pLimit = parseInt(pIndex.getAttribute('data-limit'), 10) || pItems.length;
+    var outlet = 'all';
+    var expanded = false;
+
+    var renderIndex = function () {
+      var matched = 0;
+      pItems.forEach(function (li) {
+        var ok = outlet === 'all' || li.getAttribute('data-outlet') === outlet;
+        if (ok) matched++;
+        // Only the first pLimit matches show until the reader expands.
+        li.hidden = !ok || (!expanded && matched > pLimit);
+      });
+      if (pCount) pCount.textContent = matched + (matched === 1 ? ' feature' : ' features');
+      if (pClear) pClear.hidden = outlet === 'all';
+      if (pMore) {
+        pMore.hidden = matched <= pLimit;
+        pMore.textContent = expanded
+          ? 'Show fewer'
+          : 'Show all ' + matched + (matched === 1 ? ' feature' : ' features');
+      }
+      outletBtns.forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-outlet') === outlet ? 'true' : 'false');
+      });
+    };
+
+    outletBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        outlet = b.getAttribute('data-outlet');
+        expanded = false;
+        renderIndex();
+      });
+    });
+    if (pClear) pClear.addEventListener('click', function () {
+      outlet = 'all'; expanded = false; renderIndex();
+    });
+    if (pMore) pMore.addEventListener('click', function () {
+      expanded = !expanded;
+      renderIndex();
+      if (!expanded) pIndex.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    renderIndex();
+  }
+
   /* --- Sticky property bar --- */
   var stickyBar = document.querySelector('[data-sticky-bar]');
   if (stickyBar) {
