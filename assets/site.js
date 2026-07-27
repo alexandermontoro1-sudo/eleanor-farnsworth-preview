@@ -222,7 +222,7 @@
   syncSaveButtons();
 
   /* --- Listing filters, sort and saved view --- */
-  var areaChips = document.querySelectorAll('.chip[data-filter]');
+  var areaChips = document.querySelectorAll('[data-filter]');
   var grid = document.querySelector('.listings-body .card-grid');
   if (areaChips.length && grid) {
     var cards = [].slice.call(grid.querySelectorAll('.lcard'));
