@@ -253,6 +253,7 @@
           ? (state.savedOnly ? 'Nothing saved yet' : 'No matches')
           : shown + (shown === 1 ? ' property' : ' properties');
       }
+      if (state.syncClear) state.syncClear();
     };
     window.__efApplyFilters = applyFilters;
 
@@ -282,29 +283,112 @@
       });
     });
 
-    // Scoped to .chip on purpose: the cards carry data-price and data-beds too, and
-    // an unscoped selector would bind chip handlers to every card on the page.
-    var priceChips = [].slice.call(document.querySelectorAll('.chip[data-price-max],.chip[data-price-min]'));
-    priceChips.forEach(function (ch) {
-      ch.addEventListener('click', function () {
-        var max = ch.getAttribute('data-price-max');
-        var min = ch.getAttribute('data-price-min');
-        state.priceMin = min ? +min : 0;
-        state.priceMax = (max && max !== 'all') ? +max : Infinity;
-        press(priceChips, ch);
+    /* Price range. Two native inputs share one track, which keeps keyboard and
+       screen-reader support for free. Position maps to price on a squared curve:
+       these listings run from $315k to $8.5M, so a linear track would crush three
+       quarters of them into its first fifth. */
+    var range = document.querySelector('[data-range]');
+    if (range) {
+      var rMin = +range.getAttribute('data-min');
+      var rMax = +range.getAttribute('data-max');
+      var lo = range.querySelector('[data-range-lo]');
+      var hi = range.querySelector('[data-range-hi]');
+      var fill = range.querySelector('[data-range-fill]');
+      var outEl = range.querySelector('[data-range-out]');
+      var hist = range.querySelector('[data-hist]');
+      var STEPS = 1000;
+
+      var posToPrice = function (pos) {
+        var t = pos / STEPS;
+        return rMin + (rMax - rMin) * t * t;
+      };
+      var priceToPos = function (price) {
+        var t = Math.sqrt((price - rMin) / (rMax - rMin));
+        return Math.max(0, Math.min(STEPS, Math.round(t * STEPS)));
+      };
+      var short = function (n) {
+        if (n >= 1000000) return '$' + (n / 1000000).toFixed(n >= 10000000 ? 0 : 2)
+          .replace(/\.?0+$/, '') + 'M';
+        return '$' + Math.round(n / 1000) + 'k';
+      };
+
+      // distribution bars, drawn once from the real prices
+      var BUCKETS = 26;
+      var counts = new Array(BUCKETS).fill(0);
+      cards.forEach(function (c) {
+        var b = Math.min(BUCKETS - 1,
+          Math.floor(priceToPos(+c.getAttribute('data-price')) / STEPS * BUCKETS));
+        counts[b]++;
+      });
+      var peak = Math.max.apply(null, counts) || 1;
+      hist.innerHTML = counts.map(function (n) {
+        return '<i style="height:' + Math.round((n / peak) * 100) + '%"></i>';
+      }).join('');
+      var bars = [].slice.call(hist.querySelectorAll('i'));
+
+      var paintRange = function () {
+        var a = Math.min(+lo.value, +hi.value);
+        var b = Math.max(+lo.value, +hi.value);
+        state.priceMin = a === 0 ? 0 : posToPrice(a);
+        state.priceMax = b === STEPS ? Infinity : posToPrice(b);
+        fill.style.left = (a / STEPS * 100) + '%';
+        fill.style.width = ((b - a) / STEPS * 100) + '%';
+        outEl.textContent = (a === 0 && b === STEPS)
+          ? 'Any price'
+          : short(posToPrice(a)) + ' to ' + short(posToPrice(b));
+        bars.forEach(function (bar, i) {
+          var mid = (i + 0.5) / BUCKETS * STEPS;
+          bar.classList.toggle('on', mid >= a && mid <= b);
+        });
+        applyFilters();
+      };
+
+      [lo, hi].forEach(function (input) {
+        input.addEventListener('input', paintRange);
+        // stop the handles crossing over each other
+        input.addEventListener('change', function () {
+          if (+lo.value > +hi.value) {
+            var t = lo.value; lo.value = hi.value; hi.value = t;
+            paintRange();
+          }
+        });
+      });
+      state.resetRange = function () {
+        lo.value = 0; hi.value = STEPS; paintRange();
+      };
+      paintRange();
+    }
+
+    // Scoped to .seg-btn: the cards carry data-beds too, and an unscoped selector
+    // would bind these handlers to every card on the page.
+    var bedBtns = [].slice.call(document.querySelectorAll('.seg-btn[data-beds]'));
+    bedBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var v = btn.getAttribute('data-beds');
+        state.beds = v === 'all' ? 0 : +v;
+        press(bedBtns, btn);
         applyFilters();
       });
     });
 
-    var bedChips = [].slice.call(document.querySelectorAll('.chip[data-beds]'));
-    bedChips.forEach(function (ch) {
-      ch.addEventListener('click', function () {
-        var v = ch.getAttribute('data-beds');
-        state.beds = v === 'all' ? 0 : +v;
-        press(bedChips, ch);
-        applyFilters();
+    // Clear all appears only once something is actually filtering
+    var clearBtn = document.querySelector('[data-clear]');
+    var syncClear = function () {
+      if (!clearBtn) return;
+      var active = state.area !== 'all' || state.beds > 0 || state.savedOnly
+        || state.priceMin > 0 || state.priceMax !== Infinity;
+      clearBtn.hidden = !active;
+    };
+    state.syncClear = syncClear;
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        state.area = 'all'; state.beds = 0; state.savedOnly = false;
+        press([].slice.call(areaChips), areaChips[0]);
+        press(bedBtns, bedBtns[0]);
+        if (savedBtn) savedBtn.setAttribute('aria-pressed', 'false');
+        if (state.resetRange) { state.resetRange(); } else { applyFilters(); }
       });
-    });
+    }
 
     if (savedBtn) {
       savedBtn.addEventListener('click', function () {

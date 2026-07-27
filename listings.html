@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=01758f03">
+<link rel="stylesheet" href="assets/site.css?v=e102d6bb">
 </head>
 <body>
 
@@ -62,25 +62,48 @@
         <button class="chip" data-filter="Braithwaite" aria-pressed="false">Braithwaite</button>
         <button class="chip" data-filter="Robert" aria-pressed="false">Robert</button>
     </div>
-    <div class="filters filters-2 reveal">
-      <span class="fl">Price</span>
-      <button class="chip" data-price-max="all" aria-pressed="true">Any</button>
-      <button class="chip" data-price-max="1000000" aria-pressed="false">Under $1M</button>
-      <button class="chip" data-price-max="2000000" aria-pressed="false">Under $2M</button>
-      <button class="chip" data-price-min="2000000" aria-pressed="false">$2M and above</button>
-      <span class="fl fl-gap">Beds</span>
-      <button class="chip" data-beds="all" aria-pressed="true">Any</button>
-      <button class="chip" data-beds="3" aria-pressed="false">3+</button>
-      <button class="chip" data-beds="5" aria-pressed="false">5+</button>
-      <span class="fl fl-gap">Sort</span>
-      <select class="sort-select" data-sort aria-label="Sort listings">
-        <option value="price-desc">Price, high to low</option>
-        <option value="price-asc">Price, low to high</option>
-        <option value="beds-desc">Most bedrooms</option>
-        <option value="size-desc">Largest</option>
-      </select>
-      <button class="chip chip-saved" data-show-saved aria-pressed="false">Saved only</button>
-      <span class="filter-count"></span>
+    <div class="filter-panel reveal">
+      <!-- Two handles on one track. The bars behind them are the actual price
+           distribution, so it is obvious where the properties sit and a drag into an
+           empty stretch is a deliberate choice rather than a surprise. -->
+      <div class="range" data-range data-min="315000" data-max="8500000">
+        <div class="range-head">
+          <span class="fl">Price</span>
+          <output class="range-out" data-range-out></output>
+        </div>
+        <div class="range-track">
+          <div class="hist" data-hist aria-hidden="true"></div>
+          <div class="range-rail"></div>
+          <div class="range-fill" data-range-fill></div>
+          <input type="range" data-range-lo min="0" max="1000" value="0" step="1"
+                 aria-label="Minimum price">
+          <input type="range" data-range-hi min="0" max="1000" value="1000" step="1"
+                 aria-label="Maximum price">
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <span class="fl">Bedrooms</span>
+        <div class="seg" role="group" aria-label="Minimum bedrooms">
+          <button class="seg-btn" data-beds="all" aria-pressed="true">Any</button>
+          <button class="seg-btn" data-beds="2" aria-pressed="false">2+</button>
+          <button class="seg-btn" data-beds="3" aria-pressed="false">3+</button>
+          <button class="seg-btn" data-beds="4" aria-pressed="false">4+</button>
+          <button class="seg-btn" data-beds="5" aria-pressed="false">5+</button>
+        </div>
+
+        <span class="fl fl-gap">Sort</span>
+        <select class="sort-select" data-sort aria-label="Sort listings">
+          <option value="price-desc">Price, high to low</option>
+          <option value="price-asc">Price, low to high</option>
+          <option value="beds-desc">Most bedrooms</option>
+          <option value="size-desc">Largest</option>
+        </select>
+
+        <button class="chip chip-saved" data-show-saved aria-pressed="false">Saved</button>
+        <button class="clear-all" data-clear hidden>Clear all</button>
+        <span class="filter-count"></span>
+      </div>
     </div>
     <div class="card-grid">
       <div class="lcard w3 reveal" data-area="Garden District"
@@ -414,6 +437,6 @@
     </div>
   </div>
 </footer>
-<script defer src="assets/site.js?v=1f619f44"></script>
+<script defer src="assets/site.js?v=5f4714ca"></script>
 </body>
 </html>

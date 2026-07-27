@@ -520,11 +520,78 @@ a.feature-img:hover img { transform: scale(1.035); }
 .save-pin[aria-pressed="true"] { background: var(--green); }
 .save-pin[aria-pressed="true"]::before { border-color: var(--paper); background: var(--paper); }
 
-.filters-2 { margin-top: -0.6rem; }
-.fl-gap { margin-left: 1.2rem; }
+/* ---------------- Filter panel ---------------- */
+.filter-panel { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.6rem 2.6rem;
+  padding-bottom: 1.5rem; margin-bottom: clamp(2rem, 3vw, 2.8rem);
+  border-bottom: 1px solid var(--hairline); }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; flex: 1 1 380px; }
+.fl-gap { margin-left: 0.8rem; }
 .sort-select { font: inherit; font-size: 0.8rem; color: var(--ink-soft); background: var(--paper);
-  border: 1px solid var(--hairline); padding: 0.5rem 0.7rem; }
-.chip-saved { margin-left: 1.2rem; }
+  border: 1px solid var(--hairline); padding: 0.55rem 0.7rem; }
+.chip-saved { margin-left: 0.4rem; }
+.clear-all { font-size: 0.78rem; color: var(--ink-mute); text-decoration: underline;
+  text-underline-offset: 3px; padding: 0.5rem 0.2rem; }
+.clear-all:hover { color: var(--green); }
+.clear-all[hidden] { display: none; }
+
+/* Dual-handle price range */
+.range { flex: 0 1 400px; min-width: 280px; }
+.range-head { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1rem; margin-bottom: 0.7rem; }
+.range-out { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); }
+.range-track { position: relative; height: 54px; }
+.hist { position: absolute; left: 0; right: 0; bottom: 22px; height: 26px;
+  display: flex; align-items: flex-end; gap: 2px; }
+.hist i { flex: 1; background: var(--paper-deep); min-height: 3px;
+  transition: background 0.25s var(--ease); }
+.hist i.on { background: rgba(31, 70, 52, 0.35); }
+.range-rail, .range-fill { position: absolute; left: 0; right: 0; bottom: 18px; height: 2px; }
+.range-rail { background: var(--hairline); }
+.range-fill { background: var(--green); right: auto; }
+
+/* Two stacked native inputs: keyboard and screen-reader support come free, and only
+   the thumbs receive pointer events so both handles stay grabbable. */
+.range-track input[type="range"] {
+  position: absolute; left: 0; width: 100%; bottom: 0; height: 38px;
+  margin: 0; background: none; appearance: none; -webkit-appearance: none;
+  pointer-events: none;
+}
+.range-track input[type="range"]:focus { outline: none; }
+.range-track input[type="range"]::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none; pointer-events: auto;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--paper); border: 2px solid var(--green); cursor: grab;
+  box-shadow: 0 2px 6px rgba(21, 32, 26, 0.22);
+  transition: transform 0.15s var(--ease);
+}
+.range-track input[type="range"]::-moz-range-thumb {
+  pointer-events: auto; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--paper); border: 2px solid var(--green); cursor: grab;
+  box-shadow: 0 2px 6px rgba(21, 32, 26, 0.22);
+}
+.range-track input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.range-track input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--green); outline-offset: 3px;
+}
+.range-track input[type="range"]:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--green); outline-offset: 3px;
+}
+
+/* Segmented bedroom control */
+.seg { display: inline-flex; border: 1px solid var(--hairline); }
+.seg-btn { font-size: 0.8rem; color: var(--ink-soft); padding: 0.5rem 0.85rem;
+  border-right: 1px solid var(--hairline);
+  transition: background 0.25s var(--ease), color 0.25s var(--ease); }
+.seg-btn:last-child { border-right: 0; }
+.seg-btn:hover { color: var(--green); }
+.seg-btn[aria-pressed="true"] { background: var(--green); color: var(--paper); }
+
+@media (max-width: 720px) {
+  .filter-panel { gap: 1.4rem; }
+  .range { flex: 1 1 100%; }
+  .filter-row { gap: 0.5rem; }
+  .fl-gap { margin-left: 0; }
+}
 
 /* ---------------- Sticky property bar ---------------- */
 .sticky-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
