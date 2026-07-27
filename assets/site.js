@@ -88,7 +88,12 @@
     // and reduced-motion visitors never pay for a video they will not see.
     var loadVideo = function () {
       if (!video || video.getAttribute('src')) return;
-      var src = video.getAttribute(window.innerWidth > 1280 ? 'data-src' : 'data-src-small');
+      // The video covers the full viewport width, so the source has to be at least
+      // that wide or it gets upscaled and looks soft. The small file is 1280 wide,
+      // so anything painting wider than that needs the 1920. Pixel ratio counts:
+      // a 1440 retina viewport paints ~2880 device pixels.
+      var painted = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
+      var src = video.getAttribute(painted > 1280 ? 'data-src' : 'data-src-small');
       if (!src) return;
       video.addEventListener('loadedmetadata', function () {
         videoReady = true;
