@@ -38,6 +38,16 @@ h1, h2, h3, h4, .serif {
   font-weight: 500;
   line-height: 1.06;
   letter-spacing: -0.012em;
+  /* Evens the rag on display type the way a typesetter would. Ignored where
+     unsupported, so there is no fallback to write. */
+  text-wrap: balance;
+}
+/* Kills orphans in body copy. Safari's implementation is the better one. */
+p, .lead, figcaption, dd { text-wrap: pretty; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 
 .wrap { width: 100%; max-width: 1360px; margin: 0 auto; padding: 0 clamp(1.5rem, 5vw, 4.5rem); }
@@ -56,7 +66,66 @@ h1, h2, h3, h4, .serif {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
+  .ln-i { transform: none !important; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---- Cross-document view transitions ----
+   This is a multi-page static site with real navigations, so the browser can
+   carry a photograph from a listing card into the detail-page hero rather than
+   cutting to a new page. One at-rule; browsers without it just navigate. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: 280ms; animation-timing-function: var(--ease);
+}
+/* Card thumbnails are 4:3 and heroes are wide. Without this the morph stretches,
+   because the browser is interpolating a screenshot, not the live element. */
+::view-transition-old(*), ::view-transition-new(*) { object-fit: cover; }
+/* Chrome hands the group a 400ms default; match the page fade so they settle together. */
+::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: var(--ease); }
+/* Persistent chrome should sit still across the navigation instead of cross-fading. */
+.nav { view-transition-name: site-nav; }
+.site-foot { view-transition-name: site-foot; }
+
+/* ---- Masked line reveal ----
+   Lines rise from behind a clipped edge, the way type appears under a ruler.
+   site.js splits the text; if it never runs the heading is simply visible. */
+[data-split].reveal { opacity: 1; transform: none; transition: none; }
+.ln { display: block; overflow: hidden; }
+.ln-i { display: block; transform: translateY(108%);
+  transition: transform 0.95s var(--ease); transition-delay: calc(var(--i) * 0.075s); }
+.is-in .ln-i { transform: none; }
+
+/* ---- Reading progress ----
+   Runs on the compositor via a scroll timeline where supported (Safari 26.4+
+   threads these), and falls back to a rAF-batched scroll handler in site.js. */
+.readbar { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 120; pointer-events: none; }
+.readbar i { display: block; height: 100%; background: var(--green);
+  transform: scaleX(var(--p, 0)); transform-origin: 0 50%; }
+@supports (animation-timeline: scroll()) {
+  .readbar i { animation: readGrow linear both; animation-timeline: scroll(root block); }
+  @keyframes readGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+
+/* ---- Hero drift ----
+   Pure CSS scroll-linked parallax on the detail hero copy. No scroll handler,
+   no library, and nothing at all in browsers without scroll timelines. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ldetail-hero-copy { animation: heroDrift linear both;
+      animation-timeline: view(); animation-range: exit 0% exit 90%; }
+    @keyframes heroDrift { to { transform: translateY(-14%); opacity: 0.15; } }
+  }
+}
+
+/* Respect a system request for less translucency and stronger contrast. */
+@media (prefers-reduced-transparency: reduce) {
+  .nav, .sticky-bar { backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  :root { --ink-mute: #4A554E; --hairline: rgba(21, 32, 26, 0.4); }
 }
 
 /* ---------------- Nav ---------------- */
@@ -194,6 +263,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .agent-card .btn { width: 100%; }
 .agent-card .mls { font-size: 0.72rem; color: var(--ink-mute); margin-top: 1.1rem; line-height: 1.55; }
 
+/* Drop cap on the opening paragraph. `initial-letter` is the correct property but
+   Firefox still has no support, so this is the float that works everywhere. */
+.ldetail-copy p.dc::first-letter {
+  float: left; font-family: var(--serif); font-size: 3.5em; line-height: 0.8;
+  color: var(--green); padding: 0.06em 0.1em 0 0;
+}
+
 /* ---------------- Gallery ---------------- */
 .gallery-sec { padding-bottom: clamp(4rem, 8vw, 7rem); }
 .gallery-head { display: flex; align-items: baseline; justify-content: space-between; gap: 2rem; flex-wrap: wrap;
@@ -205,17 +281,50 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .gallery img { width: 100%; transition: transform 1s var(--ease); }
 .gallery figure:hover img { transform: scale(1.035); }
 
-.lb { position: fixed; inset: 0; z-index: 200; background: rgba(12, 20, 15, 0.96); display: none; align-items: center; justify-content: center; }
-.lb.open { display: flex; }
-.lb img { max-width: 92vw; max-height: 86vh; object-fit: contain; }
-.lb-close, .lb-prev, .lb-next { position: absolute; color: #FAF8F3; width: 56px; height: 56px;
-  display: grid; place-items: center; font-size: 1.6rem; line-height: 1; opacity: 0.75; transition: opacity 0.25s var(--ease); }
-.lb-close:hover, .lb-prev:hover, .lb-next:hover { opacity: 1; }
-.lb-close { top: 14px; right: 18px; font-size: 1.9rem; }
-.lb-prev { left: 8px; top: 50%; transform: translateY(-50%); }
-.lb-next { right: 8px; top: 50%; transform: translateY(-50%); }
-.lb-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  color: rgba(250,248,243,0.75); font-size: 0.78rem; letter-spacing: 0.16em; }
+/* Native <dialog>: the browser supplies the focus trap, page inertness, and
+   Escape handling that the previous hand-rolled overlay had to fake. */
+.lb { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0;
+  padding: 0; background: rgba(12, 20, 15, 0.97); color: #FAF8F3; overflow: hidden; }
+.lb::backdrop { background: rgba(12, 20, 15, 0.97); }
+/* minmax(0, 1fr), not 1fr: a bare 1fr floors at the image's intrinsic height and
+   lets a tall photograph push down through the thumbnail rail. */
+.lb[open] { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+/* Flex, not grid: an implicit grid row is auto-sized, so a percentage max-height
+   on the photograph had nothing definite to resolve against and was ignored. */
+.lb-stage { position: relative; display: flex; align-items: center; justify-content: center;
+  min-height: 0; overflow: hidden; padding: 1rem; }
+.lb-stage img { max-width: min(94vw, 1600px); max-height: 100%; width: auto; height: auto;
+  object-fit: contain; animation: lbIn 0.4s var(--ease) both; }
+@keyframes lbIn { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: none; } }
+
+/* The controls sit over whatever photograph is loaded, so they carry their own
+   ground rather than relying on the image behind them being dark. */
+.lb-close, .lb-prev, .lb-next { position: absolute; z-index: 3; color: #FAF8F3;
+  width: 56px; height: 56px; display: grid; place-items: center; font-size: 1.7rem; line-height: 1;
+  border-radius: 50%; background: rgba(12, 20, 15, 0.55);
+  transition: background 0.25s var(--ease), transform 0.25s var(--ease); }
+.lb-close:hover, .lb-prev:hover, .lb-next:hover { background: rgba(12, 20, 15, 0.9); }
+.lb-close { top: 16px; right: 18px; }
+.lb-prev { left: 16px; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 16px; top: 50%; transform: translateY(-50%); }
+.lb-prev:hover { transform: translateY(-50%) scale(1.06); }
+.lb-next:hover { transform: translateY(-50%) scale(1.06); }
+.lb-counter { position: absolute; z-index: 3; top: 22px; left: 50%; transform: translateX(-50%);
+  padding: 0.4rem 0.9rem; border-radius: 99px; background: rgba(12, 20, 15, 0.55);
+  color: rgba(250, 248, 243, 0.92); font-size: 0.74rem; letter-spacing: 0.16em; }
+
+/* Thumbnail rail: on a thirty-photo set, a strip beats hunting with the arrows. */
+.lb-rail { display: flex; gap: 6px; overflow-x: auto; padding: 12px clamp(0.8rem, 3vw, 2rem) 16px;
+  scroll-snap-type: x proximity; border-top: 1px solid rgba(250,248,243,0.14); }
+.lb-rail button { flex: 0 0 auto; width: 84px; height: 58px; padding: 0; scroll-snap-align: center;
+  opacity: 0.4; transition: opacity 0.25s var(--ease); }
+.lb-rail button img { width: 100%; height: 100%; object-fit: cover; }
+.lb-rail button:hover { opacity: 0.75; }
+.lb-rail button[aria-current="true"] { opacity: 1; outline: 2px solid #FAF8F3; outline-offset: -2px; }
+@media (max-width: 640px) {
+  .lb-rail button { width: 62px; height: 44px; }
+  .lb-prev, .lb-next { width: 48px; height: 48px; }
+}
 
 /* ---------------- Sold archive table ---------------- */
 .sold-table { width: 100%; border-collapse: collapse; }

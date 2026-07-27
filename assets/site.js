@@ -17,6 +17,79 @@
     Array.prototype.forEach.call(revealEls, function (el) { io.observe(el); });
   }
 
+  /* --- Masked line reveal ---
+     Splits a heading into its rendered lines so each can rise from behind a
+     clipped edge. There is no CSS primitive for this: line breaks are decided by
+     layout, so the words have to be measured after they are laid out.
+
+     Accessibility: the aria-label-on-container pattern that animation libraries
+     ship by default fails in most screen-reader and browser pairings, so the real
+     text is kept verbatim in a visually hidden node and the split copy is hidden
+     from assistive technology entirely. */
+  var splitEls = document.querySelectorAll('[data-split]');
+  if (splitEls.length && !reduce) {
+    var splitOne = function (el) {
+      var text = el.getAttribute('data-text');
+      if (text === null) { text = el.textContent.replace(/\s+/g, ' ').trim(); el.setAttribute('data-text', text); }
+
+      // Lay the words out first, then group them by the line box they landed on.
+      var probe = document.createElement('span');
+      probe.setAttribute('aria-hidden', 'true');
+      probe.innerHTML = text.split(' ').map(function (w) {
+        return '<span class="wd">' + w + '</span>';
+      }).join(' ');
+      el.textContent = '';
+      el.appendChild(probe);
+
+      var lines = [], top = null;
+      Array.prototype.forEach.call(probe.querySelectorAll('.wd'), function (w) {
+        var t = w.offsetTop;
+        if (top === null || Math.abs(t - top) > 3) { lines.push([]); top = t; }
+        lines[lines.length - 1].push(w.textContent);
+      });
+      if (!lines.length) { el.textContent = text; return; }
+
+      el.innerHTML =
+        '<span class="sr-only">' + text + '</span>' +
+        '<span aria-hidden="true">' + lines.map(function (words, i) {
+          return '<span class="ln"><span class="ln-i" style="--i:' + i + '">' +
+                 words.join(' ') + '</span></span>';
+        }).join('') + '</span>';
+    };
+
+    var splitAll = function () { Array.prototype.forEach.call(splitEls, splitOne); };
+
+    // Split once the webfont has actually loaded, or the measured line breaks
+    // describe the fallback face rather than the one the reader sees.
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(splitAll); }
+    else { splitAll(); }
+
+    var lastW = window.innerWidth, resizeT;
+    window.addEventListener('resize', function () {
+      if (window.innerWidth === lastW) return;   // ignore iOS toolbar height changes
+      lastW = window.innerWidth;
+      clearTimeout(resizeT);
+      resizeT = setTimeout(splitAll, 180);
+    });
+  }
+
+  /* --- Reading progress ---
+     CSS drives this off a scroll timeline where the browser has one. This is only
+     the fallback path, and it is rAF-latched so scrolling never forces layout. */
+  var readbar = document.querySelector('.readbar i');
+  if (readbar && !(window.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()'))) {
+    var pending = false;
+    var paint = function () {
+      pending = false;
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      readbar.style.setProperty('--p', max > 0 ? Math.min(1, window.scrollY / max) : 0);
+    };
+    window.addEventListener('scroll', function () {
+      if (!pending) { pending = true; requestAnimationFrame(paint); }
+    }, { passive: true });
+    paint();
+  }
+
   /* --- Hero scroll zoom ---
      Publishes scroll progress as a single custom property, --p (0 to 1), on the
      sticky stage. All the actual motion lives in CSS. Reads are latched to one
@@ -703,31 +776,69 @@
 
   var sources = Array.prototype.map.call(figures, function (f) {
     var img = f.querySelector('img');
-    return { src: img.getAttribute('data-full') || img.src, alt: img.alt || '' };
+    // The rail reuses the 900px grid thumbnail already in cache; only the stage
+    // fetches the full-size photograph.
+    return { src: img.getAttribute('data-full') || img.src, thumb: img.src, alt: img.alt || '' };
   });
 
-  var lb = null, lbImg = null, counter = null, index = 0, lastFocus = null;
+  var lb = null, lbImg = null, counter = null, rail = null, index = 0, lastFocus = null;
 
+  /* Built on a real <dialog> opened with showModal(). The browser then supplies
+     the focus trap, inertness for the rest of the page, and Escape to close,
+     all of which the previous hand-rolled overlay only approximated. */
   function build() {
     if (lb) return;
-    lb = document.createElement('div');
+    lb = document.createElement('dialog');
     lb.className = 'lb';
-    lb.setAttribute('role', 'dialog');
-    lb.setAttribute('aria-modal', 'true');
-    lb.setAttribute('aria-label', 'Photo viewer');
+    lb.setAttribute('aria-label', 'Photograph viewer');
     lb.innerHTML =
-      '<button class="lb-close" aria-label="Close photo viewer">&times;</button>' +
-      '<button class="lb-prev" aria-label="Previous photo">&#8249;</button>' +
-      '<img src="' + sources[0].src + '" alt="">' +
-      '<button class="lb-next" aria-label="Next photo">&#8250;</button>' +
-      '<div class="lb-counter"></div>';
+      '<div class="lb-stage">' +
+        '<button class="lb-close" aria-label="Close photo viewer">&times;</button>' +
+        '<button class="lb-prev" aria-label="Previous photo">&#8249;</button>' +
+        '<img alt="">' +
+        '<button class="lb-next" aria-label="Next photo">&#8250;</button>' +
+        '<p class="lb-counter" aria-live="polite"></p>' +
+      '</div>' +
+      '<div class="lb-rail" role="tablist" aria-label="Choose a photograph"></div>';
     document.body.appendChild(lb);
-    lbImg = lb.querySelector('img');
+    lbImg = lb.querySelector('.lb-stage img');
     counter = lb.querySelector('.lb-counter');
-    lb.querySelector('.lb-close').addEventListener('click', close);
-    lb.querySelector('.lb-prev').addEventListener('click', function (e) { e.stopPropagation(); show(index - 1); });
-    lb.querySelector('.lb-next').addEventListener('click', function (e) { e.stopPropagation(); show(index + 1); });
-    lb.addEventListener('click', function (e) { if (e.target === lb || e.target === lbImg) close(); });
+    rail = lb.querySelector('.lb-rail');
+
+    rail.innerHTML = sources.map(function (s, i) {
+      return '<button type="button" role="tab" aria-label="Photo ' + (i + 1) + '"' +
+             ' aria-current="false" data-i="' + i + '">' +
+             '<img src="' + s.thumb + '" alt=""></button>';
+    }).join('');
+    rail.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-i]');
+      if (b) show(+b.getAttribute('data-i'));
+    });
+
+    lb.querySelector('.lb-close').addEventListener('click', function () { lb.close(); });
+    lb.querySelector('.lb-prev').addEventListener('click', function () { show(index - 1); });
+    lb.querySelector('.lb-next').addEventListener('click', function () { show(index + 1); });
+    // Clicking the empty space around the photograph dismisses it.
+    lb.querySelector('.lb-stage').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget || e.target === lbImg) lb.close();
+    });
+    lb.addEventListener('close', function () { if (lastFocus) lastFocus.focus(); });
+    lb.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1); }
+    });
+
+    // Swipe, with the arrow buttons as the required no-drag alternative.
+    var x0 = null, y0 = null;
+    lb.addEventListener('touchstart', function (e) {
+      x0 = e.changedTouches[0].clientX; y0 = e.changedTouches[0].clientY;
+    }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) show(index + (dx < 0 ? 1 : -1));
+      x0 = null;
+    }, { passive: true });
   }
 
   function show(i) {
@@ -735,19 +846,24 @@
     lbImg.src = sources[index].src;
     lbImg.alt = sources[index].alt;
     counter.textContent = (index + 1) + ' / ' + sources.length;
+    Array.prototype.forEach.call(rail.children, function (b, n) {
+      b.setAttribute('aria-current', n === index ? 'true' : 'false');
+    });
+    var active = rail.children[index];
+    if (active) active.scrollIntoView({ block: 'nearest', inline: 'center' });
+    // Warm the neighbours so paging through a large set does not flash.
+    [index + 1, index - 1].forEach(function (n) {
+      var s = sources[(n + sources.length) % sources.length];
+      if (s) { var p = new Image(); p.src = s.src; }
+    });
   }
+
   function open(i) {
     lastFocus = document.activeElement;
     build();
     show(i);
-    lb.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    lb.showModal();
     lb.querySelector('.lb-close').focus();
-  }
-  function close() {
-    lb.classList.remove('open');
-    document.body.style.overflow = '';
-    if (lastFocus) lastFocus.focus();
   }
 
   Array.prototype.forEach.call(figures, function (f, i) {
@@ -758,12 +874,5 @@
     f.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(i); }
     });
-  });
-
-  document.addEventListener('keydown', function (e) {
-    if (!lb || !lb.classList.contains('open')) return;
-    if (e.key === 'Escape') close();
-    if (e.key === 'ArrowLeft') show(index - 1);
-    if (e.key === 'ArrowRight') show(index + 1);
   });
 })();
